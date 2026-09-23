@@ -1,0 +1,66 @@
+{
+  "app-office": {
+    "src": "/assets/VersiWebp/katalogMicrosoft.webp",
+    "originalHash": "7717fd3c988fb90695028a7fdbfedfa675a14c3979a443ddb4632bbab7a53f16"
+  },
+  "app-1790154210043": {
+    "src": "/assets/VersiWebp/SPssWin.webp",
+    "originalHash": "ad70eb45e2f997397a166613f2f71eb082f2753e1a8d5640833ea85684a4be2b"
+  },
+  "app-spssmac": {
+    "src": "/assets/VersiWebp/SpssMac.webp",
+    "originalHash": "f585a3223dbb21ad1bfdda184150230740092e025c42e4ccd441148198f3740d"
+  },
+  "app-photoshop": {
+    "src": "/assets/VersiWebp/katalogPhotoshop.webp",
+    "originalHash": "99663698aefabe26990553322b823cefb13f8f092f4697edd1afe5d0af5f8d1e"
+  },
+  "app-1790153536514": {
+    "src": "/assets/VersiWebp/katalogSmartpls.webp",
+    "originalHash": "db0435fdaa80bdcfddb4a1595c6f9f18abe6ba009e610ad93117039cc67eb778"
+  },
+  "app-autocad": {
+    "src": "/assets/VersiWebp/katalogAutocad.webp",
+    "originalHash": "dc1d95d6cf71699e6f48707cb43da7cef427dc7471d3c91d01a47169bb18adad"
+  },
+  "app-mendeley": {
+    "src": "/assets/VersiWebp/katalogMendeley.webp",
+    "originalHash": "fe7df088495c7e14f2dd7b0fb59235adabe08cdbede223164919d6a505c87e3e"
+  },
+  "app-1788703953321": {
+    "src": "/assets/VersiWebp/katalogNitro.webp",
+    "originalHash": "c7047248f7af53f71f9c16ff97618e6b9bc0330ab32a74002edfa161d45b30ee"
+  },
+  "app-1788704020346": {
+    "src": "/assets/VersiWebp/katalogAdobeAcrobat.webp",
+    "originalHash": "203e16575ddf35c3a649e1da626099c7917ce94a8e3b00efdf0403a77a3acf0c"
+  },
+  "app-premiere": {
+    "src": "/assets/VersiWebp/katalogPremiere.webp",
+    "originalHash": "45e9fc792062a3ccb4b35773d553593542bb0a2405838154b53cfdb42aa6dad8"
+  },
+  "app-sketchup": {
+    "src": "/assets/VersiWebp/KatalogSketchup.webp",
+    "originalHash": "a75eb7dea8fd35b12cd93d06d68f0bc09002c497b4aad1b486e30b0b8d81ade7"
+  },
+  "app-davinci": {
+    "src": "/assets/VersiWebp/katalogDavinci.webp",
+    "originalHash": "198472852eb6dd7664dd67b2b1033c7ca2c081d9cb0531f5fec141d50e8325ea"
+  },
+  "app-lightroom": {
+    "src": "/assets/VersiWebp/katalogLightroom.webp",
+    "originalHash": "661d3f07a6eb17588a286e201001eda5629894142a47b755dd7b2a0a43a1f3e8"
+  },
+  "app-coreldraw": {
+    "src": "/assets/VersiWebp/katalogCorel.webp",
+    "originalHash": "10f823d3ca2137c84abc51a01aeb66153736c2d6db691544e8875e4d02204d44"
+  },
+  "app-idm": {
+    "src": "/assets/VersiWebp/katalogIdm.webp",
+    "originalHash": "99aad190d638d86a57c775ad1a34bbca3d737dd25ac0034b15cada0e20bf1568"
+  },
+  "app-recoverit": {
+    "src": "/assets/VersiWebp/katalogRecoverit.webp",
+    "originalHash": "c7b955637ebfc82529cf2c1c107e6781444bbc28934a70fe4afa7cceb14b6c67"
+  }
+}
