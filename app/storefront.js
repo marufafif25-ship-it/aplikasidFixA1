@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { getCheckoutUrl } from "../lib/checkout";
 
@@ -213,7 +213,33 @@ function ProductCard({ product, onDetail, onBuy }) {
 }
 
 function ProductModal({ product, onClose, onBuy }) {
-  return <div className="modal-overlay" onClick={onClose}><div className="modal-container" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div></div></div>;
+  const dialogRef = useRef(null);
+  const headingRef = useRef(null);
+  const titleId = useId();
+  const backdropStart = useRef(false);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const opener = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    headingRef.current?.focus({ preventScroll: true });
+    document.body.style.overflow = "hidden";
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, []);
+
+  const outsideDialog = (event) => {
+    if (event.target !== event.currentTarget) return false;
+    const rect = event.currentTarget.getBoundingClientRect();
+    return event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+  };
+
+  return <dialog ref={dialogRef} className="modal-container product-dialog" aria-labelledby={titleId} aria-modal="true" onCancel={(event) => { event.preventDefault(); onClose(); }} onPointerDown={(event) => { backdropStart.current = outsideDialog(event); }} onClick={(event) => { if (backdropStart.current && outsideDialog(event)) onClose(); backdropStart.current = false; }}>
+    <button type="button" className="modal-close" onClick={onClose} aria-label="Tutup detail produk">×</button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2 id={titleId} ref={headingRef} tabIndex={-1}>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div></dialog>;
 }
 
 function InfoCard({ icon, title, text }) { return <article className="info-card"><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>; }
