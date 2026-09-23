@@ -48,8 +48,6 @@ export default function Storefront({ initialData }) {
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [activeModal, setActiveModal] = useState(null);
-  const [invoiceQuery, setInvoiceQuery] = useState("");
   const [notice, setNotice] = useState("");
   const heroSettings = { ...defaultHeroSettings, ...initialData.homepage };
   const footerSettings = normalizeFooterSettings(initialData.footer);
@@ -135,7 +133,6 @@ export default function Storefront({ initialData }) {
             <button className="nav-link" onClick={() => scrollTo("produk")}>Produk</button>
             <button className="nav-link" onClick={() => scrollTo("bantuan")}>Bantuan</button>
             <button className="nav-link" onClick={() => scrollTo("garansi")}>Garansi</button>
-            <button className="nav-link" onClick={() => setActiveModal("invoice")}>Cek Invoice</button>
           </nav>
           <div className="nav-actions">
             <button className="action-btn" onClick={() => scrollTo("produk")} aria-label="Cari produk">⌕</button>
@@ -151,7 +148,7 @@ export default function Storefront({ initialData }) {
                 <span className="hero-badge">▱ &nbsp; {heroSettings.badge}</span>
                 <h1>{heroSettings.title}<br />{heroSettings.titleLineTwo}</h1>
                 <p>{heroSettings.description}</p>
-                <div className="hero-cta"><button className="btn-primary" onClick={() => scrollTo(heroSettings.primaryTarget || "produk")}>{heroSettings.primaryLabel} <span>→</span></button><button className="btn-secondary" onClick={() => scrollTo(heroSettings.secondaryTarget || "bantuan")}>▤ &nbsp; {heroSettings.secondaryLabel}</button></div>
+                <div className="hero-cta"><button className="btn-primary" onClick={() => scrollTo(heroSettings.primaryTarget || "produk")}>{heroSettings.primaryLabel} <span>→</span></button></div>
                 <div className="trust-badges"><span>♧ &nbsp; {heroSettings.trustOne}</span><span>ϟ &nbsp; {heroSettings.trustTwo}</span><span>♧ &nbsp; {heroSettings.trustThree}</span></div>
               </div>
               <div className="category-quick-grid">
@@ -189,14 +186,12 @@ export default function Storefront({ initialData }) {
         </section>
 
         <section className="info-section" id="garansi"><div className="container info-grid"><InfoCard icon="ϟ" title="Aktivasi Cepat" text="Pesanan diproses dengan cepat dan panduan instalasi tersedia untuk setiap software." /><InfoCard icon="♢" title="Garansi Selamanya" text="Garansi permanen update dan penggantian link jika ada masalah instalasi." /><InfoCard icon="⇩" title="Direct Google Drive" text="Akses download kencang, aman, dan dilengkapi panduan langkah demi langkah." /></div></section>
-        <section className="help-section" id="bantuan"><div className="container"><h2>Butuh bantuan memilih software?</h2><p>Tim kami siap membantu menemukan paket yang sesuai kebutuhan kerja dan perangkat Anda.</p><button className="btn-primary" onClick={() => setActiveModal("request")}>Request Software →</button></div></section>
+        <section className="help-section" id="bantuan"><div className="container"><h2>Butuh bantuan memilih software?</h2><p>Tim kami siap membantu menemukan paket yang sesuai kebutuhan kerja dan perangkat Anda.</p><button className="btn-primary" onClick={() => setChatOpen(true)}>Hubungi CS →</button></div></section>
       </main>
 
       <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links">{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
       {notice && <div className="toast" role="status">{notice}</div>}
       {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onBuy={buyProduct} />}
-      {activeModal === "invoice" && <InvoiceModal query={invoiceQuery} setQuery={setInvoiceQuery} onClose={() => setActiveModal(null)} />}
-      {activeModal === "request" && <RequestModal onClose={() => setActiveModal(null)} onSubmit={() => { setActiveModal(null); setNotice("Request software berhasil dikirim."); }} />}
       <ChatWidget open={chatOpen} setOpen={setChatOpen} input={chatInput} setInput={setChatInput} messages={chatMessages} faqItems={faqItems} onSend={sendChatMessage} onAskFaq={sendFaqQuestion} whatsapp={footerSettings.whatsapp} />
     </>
   );
@@ -223,9 +218,3 @@ function ProductModal({ product, onClose, onBuy }) {
 }
 
 function InfoCard({ icon, title, text }) { return <article className="info-card"><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>; }
-
-function ModalShell({ title, children, onClose }) { return <div className="modal-overlay" onClick={onClose}><div className="modal-container" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><h2 className="modal-heading">{title}</h2>{children}</div></div>; }
-
-function InvoiceModal({ query, setQuery, onClose }) { return <ModalShell title="Cek Invoice & Akses Drive" onClose={onClose}><p className="modal-note">Masukkan kode invoice atau email pembeli untuk mencari pesanan.</p><input className="form-input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Contoh: APL-84920" /><div className="invoice-result">{query ? `Pencarian untuk: ${query}` : "Belum ada pencarian."}</div></ModalShell>; }
-
-function RequestModal({ onClose, onSubmit }) { return <ModalShell title="Request Software" onClose={onClose}><p className="modal-note">Software yang Anda cari belum ada? Kirimkan nama dan versi yang dibutuhkan.</p><label className="form-label">Nama Software<input className="form-input" placeholder="Contoh: Blender 4.2 Pro" /></label><label className="form-label">Email / WhatsApp<input className="form-input" placeholder="Kontak Anda" /></label><button className="btn-primary full-button" onClick={onSubmit}>Kirim Request</button></ModalShell>; }
