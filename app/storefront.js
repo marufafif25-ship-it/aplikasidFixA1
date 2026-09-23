@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { getCheckoutUrl } from "../lib/checkout";
 
 const defaultHeroSettings = {
   badge: "238+ Software Aktif",
@@ -46,10 +47,8 @@ export default function Storefront({ initialData }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
-  const [cart, setCart] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeModal, setActiveModal] = useState(null);
-  const [buyer, setBuyer] = useState({ name: "", email: "", phone: "" });
   const [invoiceQuery, setInvoiceQuery] = useState("");
   const [notice, setNotice] = useState("");
   const heroSettings = { ...defaultHeroSettings, ...initialData.homepage };
@@ -58,22 +57,6 @@ export default function Storefront({ initialData }) {
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([{ from: "bot", text: "Halo! Saya CS Aplikasi.id. Ada yang bisa saya bantu?" }]);
   const faqItems = normalizeFaqItems(initialData.faq);
-  const [cartReady, setCartReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      const savedCart = JSON.parse(window.localStorage.getItem("aplikasiid_cart") || "[]");
-      if (Array.isArray(savedCart)) setCart(savedCart);
-    } catch {}
-    setCartReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (cartReady) {
-      try { window.localStorage.setItem("aplikasiid_cart", JSON.stringify(cart)); } catch {}
-    }
-  }, [cart, cartReady]);
-
   const filteredProducts = useMemo(() => {
     const normalized = query.toLowerCase().trim();
     const result = productList.filter((product) => {
@@ -104,15 +87,14 @@ export default function Storefront({ initialData }) {
     heading?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
   };
 
-  const addToCart = (product) => {
-    if (product.buyUrl) {
-      window.location.assign(product.buyUrl);
+  const buyProduct = (product) => {
+    const checkoutUrl = getCheckoutUrl(product.buyUrl);
+    if (!checkoutUrl) {
+      setSelectedProduct(null);
+      setNotice("Link pembelian produk ini belum tersedia. Silakan hubungi CS melalui WhatsApp.");
       return;
     }
-    setCart((current) => current.some((item) => item.id === product.id) ? current : [...current, product]);
-    setNotice(`${product.title} ditambahkan ke keranjang`);
-    setSelectedProduct(null);
-    window.setTimeout(() => setNotice(""), 2500);
+    window.location.assign(checkoutUrl);
   };
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -157,7 +139,6 @@ export default function Storefront({ initialData }) {
           </nav>
           <div className="nav-actions">
             <button className="action-btn" onClick={() => scrollTo("produk")} aria-label="Cari produk">⌕</button>
-            <button className="action-btn cart-button" onClick={() => setActiveModal("cart")} aria-label="Lihat keranjang">🛒<span>{cart.length}</span></button>
           </div>
         </div>
       </header>
@@ -190,7 +171,7 @@ export default function Storefront({ initialData }) {
 
         <section className="products-section">
           <div className="container"><div className="section-header"><h2 id="catalog-heading" tabIndex={-1}>Katalog Software Premium <small>{filteredProducts.length} Software</small></h2></div><div className="products-grid">
-            {visibleProducts.map((product) => <ProductCard key={product.id} product={product} onDetail={setSelectedProduct} onBuy={addToCart} />)}
+            {visibleProducts.map((product) => <ProductCard key={product.id} product={product} onDetail={setSelectedProduct} onBuy={buyProduct} />)}
           </div>
             {filteredProducts.length === 0 && <p className="empty-state">Tidak ada aplikasi yang cocok. Coba kata kunci atau kategori lain.</p>}
             <div className="catalog-pagination">
@@ -212,10 +193,8 @@ export default function Storefront({ initialData }) {
       </main>
 
       <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links">{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
-      {notice && <div className="toast">✓ &nbsp; {notice}</div>}
-      {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onBuy={addToCart} />}
-      {activeModal === "cart" && <CartModal cart={cart} onClose={() => setActiveModal(null)} onCheckout={() => setActiveModal("checkout")} onRemove={(id) => setCart((items) => items.filter((item) => item.id !== id))} />}
-      {activeModal === "checkout" && <CheckoutModal buyer={buyer} setBuyer={setBuyer} cart={cart} onClose={() => setActiveModal(null)} onSuccess={() => { setCart([]); setActiveModal(null); setNotice("Pembayaran berhasil. Link Drive dikirim ke email Anda."); }} />}
+      {notice && <div className="toast" role="status">{notice}</div>}
+      {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onBuy={buyProduct} />}
       {activeModal === "invoice" && <InvoiceModal query={invoiceQuery} setQuery={setInvoiceQuery} onClose={() => setActiveModal(null)} />}
       {activeModal === "request" && <RequestModal onClose={() => setActiveModal(null)} onSubmit={() => { setActiveModal(null); setNotice("Request software berhasil dikirim."); }} />}
       <ChatWidget open={chatOpen} setOpen={setChatOpen} input={chatInput} setInput={setChatInput} messages={chatMessages} faqItems={faqItems} onSend={sendChatMessage} onAskFaq={sendFaqQuestion} whatsapp={footerSettings.whatsapp} />
@@ -240,23 +219,12 @@ function ProductCard({ product, onDetail, onBuy }) {
 }
 
 function ProductModal({ product, onClose, onBuy }) {
-  return <div className="modal-overlay" onClick={onClose}><div className="modal-container" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Tambah ke Keranjang</button></div></div></div>;
+  return <div className="modal-overlay" onClick={onClose}><div className="modal-container" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div></div></div>;
 }
 
 function InfoCard({ icon, title, text }) { return <article className="info-card"><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>; }
 
 function ModalShell({ title, children, onClose }) { return <div className="modal-overlay" onClick={onClose}><div className="modal-container" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><h2 className="modal-heading">{title}</h2>{children}</div></div>; }
-
-function CartModal({ cart, onClose, onCheckout, onRemove }) {
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
-  return <ModalShell title="Keranjang Belanja" onClose={onClose}>{cart.length === 0 ? <p className="empty-state">Keranjang Anda masih kosong.</p> : <><div className="cart-list">{cart.map((item) => <div className="cart-row" key={item.id}><span>{item.title}<small>{formatRp(item.price)}</small></span><button onClick={() => onRemove(item.id)}>Hapus</button></div>)}</div><div className="modal-price"><div><small>Total biaya</small><strong>{formatRp(total)}</strong></div><button className="btn-primary" onClick={onCheckout}>Lanjut Bayar</button></div></>}</ModalShell>;
-}
-
-function CheckoutModal({ buyer, setBuyer, cart, onClose, onSuccess }) {
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
-  const update = (field) => (event) => setBuyer({ ...buyer, [field]: event.target.value });
-  return <ModalShell title="Checkout Pembelian" onClose={onClose}><p className="modal-note">Total pesanan: <b>{formatRp(total)}</b></p><label className="form-label">Nama Lengkap<input className="form-input" value={buyer.name} onChange={update("name")} placeholder="Nama Anda" /></label><label className="form-label">Email Pembeli<input className="form-input" type="email" value={buyer.email} onChange={update("email")} placeholder="email@contoh.com" /></label><label className="form-label">Nomor WhatsApp<input className="form-input" value={buyer.phone} onChange={update("phone")} placeholder="081234567890" /></label><button className="btn-primary full-button" onClick={() => buyer.name && buyer.email && buyer.phone ? onSuccess() : null}>Konfirmasi &amp; Bayar Sekarang</button></ModalShell>;
-}
 
 function InvoiceModal({ query, setQuery, onClose }) { return <ModalShell title="Cek Invoice & Akses Drive" onClose={onClose}><p className="modal-note">Masukkan kode invoice atau email pembeli untuk mencari pesanan.</p><input className="form-input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Contoh: APL-84920" /><div className="invoice-result">{query ? `Pencarian untuk: ${query}` : "Belum ada pencarian."}</div></ModalShell>; }
 
