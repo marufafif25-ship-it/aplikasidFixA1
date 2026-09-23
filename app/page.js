@@ -60,6 +60,7 @@ const mergeStoredOrder = (items) => {
 
 export default function HomePage() {
   const [productList, setProductList] = useState(products);
+  const [catalogPage, setCatalogPage] = useState(1);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
@@ -139,6 +140,24 @@ export default function HomePage() {
     if (sort === "price-high") return [...result].sort((a, b) => b.price - a.price);
     return sort === "newest" ? orderProducts(result) : result;
   }, [category, productList, query, sort]);
+
+  const pageSize = 12;
+  const pageCount = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+  const currentPage = Math.min(catalogPage, pageCount);
+  const pageStart = (currentPage - 1) * pageSize;
+  const visibleProducts = filteredProducts.slice(pageStart, pageStart + pageSize);
+  const pageNumbers = Array.from(new Set([1, currentPage - 1, currentPage, currentPage + 1, pageCount]))
+    .filter((page) => page >= 1 && page <= pageCount).sort((a, b) => a - b);
+
+  useEffect(() => { setCatalogPage(1); }, [query, category, sort]);
+  useEffect(() => { setCatalogPage((page) => Math.min(page, pageCount)); }, [pageCount]);
+
+  const changeCatalogPage = (page) => {
+    setCatalogPage(Math.max(1, Math.min(page, pageCount)));
+    const heading = document.getElementById("catalog-heading");
+    heading?.focus({ preventScroll: true });
+    heading?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+  };
 
   const addToCart = (product) => {
     if (product.buyUrl) {
@@ -225,9 +244,22 @@ export default function HomePage() {
         </section>
 
         <section className="products-section">
-          <div className="container"><div className="section-header"><h2>Katalog Software Premium <small>{filteredProducts.length} Software</small></h2></div><div className="products-grid">
-            {filteredProducts.map((product) => <ProductCard key={product.id} product={product} onDetail={setSelectedProduct} onBuy={addToCart} />)}
-          </div></div>
+          <div className="container"><div className="section-header"><h2 id="catalog-heading" tabIndex={-1}>Katalog Software Premium <small>{filteredProducts.length} Software</small></h2></div><div className="products-grid">
+            {visibleProducts.map((product) => <ProductCard key={product.id} product={product} onDetail={setSelectedProduct} onBuy={addToCart} />)}
+          </div>
+            {filteredProducts.length === 0 && <p className="empty-state">Tidak ada aplikasi yang cocok. Coba kata kunci atau kategori lain.</p>}
+            <div className="catalog-pagination">
+              <p role="status">{filteredProducts.length ? `Menampilkan ${pageStart + 1}–${Math.min(pageStart + pageSize, filteredProducts.length)} dari ${filteredProducts.length} aplikasi` : "Menampilkan 0 aplikasi"}</p>
+              {pageCount > 1 && <nav aria-label="Halaman katalog" className="catalog-page-controls">
+                <button type="button" disabled={currentPage === 1} onClick={() => changeCatalogPage(currentPage - 1)} aria-label="Halaman sebelumnya">← <span>Sebelumnya</span></button>
+                {pageNumbers.map((page, index) => <span className="catalog-page-item" key={page}>
+                  {index > 0 && page - pageNumbers[index - 1] > 1 && <span className="catalog-page-gap" aria-hidden="true">…</span>}
+                  <button type="button" aria-label={`Halaman ${page}`} aria-current={page === currentPage ? "page" : undefined} onClick={() => changeCatalogPage(page)}>{page}</button>
+                </span>)}
+                <button type="button" disabled={currentPage === pageCount} onClick={() => changeCatalogPage(currentPage + 1)} aria-label="Halaman berikutnya"><span>Berikutnya</span> →</button>
+              </nav>}
+            </div>
+          </div>
         </section>
 
         <section className="info-section" id="garansi"><div className="container info-grid"><InfoCard icon="ϟ" title="Aktivasi Cepat" text="Pesanan diproses dengan cepat dan panduan instalasi tersedia untuk setiap software." /><InfoCard icon="♢" title="Garansi Selamanya" text="Garansi permanen update dan penggantian link jika ada masalah instalasi." /><InfoCard icon="⇩" title="Direct Google Drive" text="Akses download kencang, aman, dan dilengkapi panduan langkah demi langkah." /></div></section>
