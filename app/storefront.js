@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 const defaultHeroSettings = {
   badge: "238+ Software Aktif",
@@ -144,7 +145,7 @@ export default function Storefront({ initialData }) {
       <header className="navbar-wrapper">
         <div className="container navbar">
           <button className="brand-logo" onClick={() => scrollTo("home")} aria-label="Kembali ke beranda">
-            <span className="logo-icon"><img src="/assets/logos/aplikasid-hitamputih.png" alt="Aplikasi.id" /></span>
+            <span className="logo-icon"><Image src="/assets/logos/aplikasid-hitamputih.png" alt="Aplikasi.id" width={42} height={42} /></span>
             <span className="logo-text"><strong>Aplikasi.id</strong><small>LICENSED SOFTWARE</small></span>
           </button>
           <nav className="nav-menu" aria-label="Navigasi utama">
@@ -226,13 +227,20 @@ function ChatWidget({ open, setOpen, input, setInput, messages, faqItems, onSend
   return <div className={`chat-widget${open ? " is-open" : ""}`}><button className="chat-launcher" type="button" onClick={() => setOpen(!open)} aria-label={open ? "Tutup chat CS" : "Buka chat CS"}>{open ? "×" : "✦"}<span className="chat-launcher-label">{open ? "Tutup" : "Chat CS"}</span></button>{open && <section className="chat-panel" aria-label="Chat CS Aplikasi.id"><header className="chat-panel-header"><div><strong>CS Aplikasi.id</strong><small>Pilih pertanyaan yang ingin Anda tanyakan</small></div><span className="chat-online-dot" /></header><div className="chat-messages">{messages.map((message, index) => <p className={`chat-message ${message.from}`} key={`${message.from}-${index}`}>{message.text}</p>)}</div><div className="chat-quick-title">Pertanyaan populer</div><div className="chat-quick-actions">{faqItems.slice(0, 6).map((item) => <button type="button" key={item.id} onClick={() => onAskFaq(item)}>{item.question}</button>)}</div><form className="chat-composer" onSubmit={(event) => { event.preventDefault(); onSend(); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Atau tulis pesan..." aria-label="Tulis pesan ke CS" /><button type="submit" aria-label="Kirim pesan">→</button></form>{whatsapp && <a className="chat-whatsapp" href={whatsapp} target="_blank" rel="noreferrer">Hubungi CS via WhatsApp <span>↗</span></a>}</section>}</div>;
 }
 
+// Local assets and the public Supabase image route use Next.js resizing/WebP.
+// External URLs retain compatibility without allowing arbitrary image proxy hosts.
+function CatalogImage(props) {
+  const local = props.src?.startsWith("/assets/") || props.src?.startsWith("/api/product-image/");
+  return <Image {...props} unoptimized={!local} loading="lazy" decoding="async" />;
+}
+
 function ProductCard({ product, onDetail, onBuy }) {
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-  return <article className="product-card"><div className={`card-artwork${product.catalogImageUrl ? " card-artwork-catalog" : ""}`}>{product.catalogImageUrl ? <img className="card-catalog-image" src={product.catalogImageUrl} alt={`Katalog ${product.title}`} /> : <><span className="thumbnail-watermark">PERMANEN! · Garansi</span><div className="artwork-logo-box" style={{ background: product.color }}><img src={product.imageUrl} alt="" /></div><strong>{product.title.split("(")[0]}</strong><small>{product.versions.slice(0, 35)}...</small><span className="drive-badge-pill">Drive Direct</span></>}</div><div className="card-body"><div className="card-specs-pills">{product.specs.slice(0, 2).map((spec) => <span key={spec}>{spec}</span>)}</div><h3>{product.title}</h3><div className="product-meta"><span>★ {product.rating}</span><i>·</i><span>{product.sales} terjual</span></div><div className="pricing-wrapper"><del>{formatRp(product.originalPrice)}</del><b>{formatRp(product.price)}</b><em>-{discount}%</em></div><button className="btn-card-detail" onClick={() => onDetail(product)}>Lihat Detail →</button><button className="btn-card-buy" onClick={() => onBuy(product)}>Beli Sekarang</button></div></article>;
+  return <article className="product-card"><div className={`card-artwork${product.catalogImageUrl ? " card-artwork-catalog" : ""}`}>{product.catalogImageUrl ? <CatalogImage className="card-catalog-image" src={product.catalogImageUrl} alt={`Katalog ${product.title}`} fill sizes="(max-width: 900px) 50vw, (max-width: 1100px) 25vw, 250px" /> : <><span className="thumbnail-watermark">PERMANEN! · Garansi</span><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><strong>{product.title.split("(")[0]}</strong><small>{product.versions.slice(0, 35)}...</small><span className="drive-badge-pill">Drive Direct</span></>}</div><div className="card-body"><div className="card-specs-pills">{product.specs.slice(0, 2).map((spec) => <span key={spec}>{spec}</span>)}</div><h3>{product.title}</h3><div className="product-meta"><span>★ {product.rating}</span><i>·</i><span>{product.sales} terjual</span></div><div className="pricing-wrapper"><del>{formatRp(product.originalPrice)}</del><b>{formatRp(product.price)}</b><em>-{discount}%</em></div><button className="btn-card-detail" onClick={() => onDetail(product)}>Lihat Detail →</button><button className="btn-card-buy" onClick={() => onBuy(product)}>Beli Sekarang</button></div></article>;
 }
 
 function ProductModal({ product, onClose, onBuy }) {
-  return <div className="modal-overlay" onClick={onClose}><div className="modal-container" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><img src={product.imageUrl} alt="" /></div><div><h2>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Tambah ke Keranjang</button></div></div></div>;
+  return <div className="modal-overlay" onClick={onClose}><div className="modal-container" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Tambah ke Keranjang</button></div></div></div>;
 }
 
 function InfoCard({ icon, title, text }) { return <article className="info-card"><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>; }
