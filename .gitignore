@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.env*
+.DS_Store
+
+!.env.example
+
+# Kredensial spreadsheet lama hanya untuk arsip lokal
+SpreadsheetYangLama/*auth*.csv

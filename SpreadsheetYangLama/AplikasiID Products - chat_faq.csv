@@ -1,0 +1,4 @@
+id,question,answer,keywords,active,sortOrder
+order,Cara order,"Pilih software, klik Beli Sekarang, lalu ikuti halaman pembayaran.","order,beli,pesan",TRUE,1
+warranty,garansinya?,Produk kami memiliki garansi sesuai keterangan pada katalog. Hubungi CS jika ada kendala instalasi.,"garansi,aman",TRUE,2
+payment,pembayaran?,Klik tombol Beli Sekarang lalu ikuti instruksi pembayaran pada halaman checkout.,"bayar,pembayaran",TRUE,3
