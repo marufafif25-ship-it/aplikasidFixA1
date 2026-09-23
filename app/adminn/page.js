@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { products as defaultProducts } from "../../lib/products";
 import { getAdminUser, signOutAdmin, saveProducts, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
 
 const STORAGE_KEY = "aplikasiid_products";
@@ -45,17 +44,6 @@ const emptyProduct = {
   specs: []
 };
 
-const readProducts = () => {
-  if (typeof window === "undefined") return defaultProducts;
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  if (!saved) return defaultProducts;
-  try {
-    return JSON.parse(saved);
-  } catch {
-    return defaultProducts;
-  }
-};
-
 const formatRp = (amount) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(amount) || 0);
 const hasSortOrder = (value) => value !== "" && value !== null && value !== undefined && Number.isFinite(Number(value));
 const withOrder = (items) => items.map((product, index) => ({ ...product, sortOrder: hasSortOrder(product.sortOrder) ? Number(product.sortOrder) : index }));
@@ -77,7 +65,7 @@ export default function AdminPage() {
   const [authReady, setAuthReady] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
   const [loginForm, setLoginForm] = useState({ login: "", password: "" });
-  const [productList, setProductList] = useState(defaultProducts);
+  const [productList, setProductList] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyProduct);
   const [page, setPage] = useState(1);
@@ -88,7 +76,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     getAdminUser().then(setAdminUser).catch((error) => setNotice(error.message)).finally(() => setAuthReady(true));
-    setProductList(withOrder(readProducts()));
     const savedHero = window.localStorage.getItem("aplikasiid_hero");
     if (savedHero) setHeroSettings({ ...defaultHeroSettings, ...JSON.parse(savedHero) });
     const savedFooter = window.localStorage.getItem("aplikasiid_footer");
@@ -117,7 +104,7 @@ export default function AdminPage() {
         setProductList(orderedProducts);
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orderedProducts));
       })
-      .catch(() => setNotice("Supabase tidak dapat diakses. Data lokal digunakan."));
+      .catch(() => setNotice("Supabase tidak dapat diakses. Coba muat ulang katalog."));
   }, []);
 
   const login = async (event) => {
@@ -269,15 +256,15 @@ export default function AdminPage() {
     if (visibleProducts.length === 1 && page > 1) setPage(page - 1);
   };
 
-  const resetProducts = () => {
-    if (!window.confirm("Gunakan kembali data terbaru dari file lib/products.js? Perubahan admin akan dihapus.")) return;
-    window.localStorage.removeItem(STORAGE_KEY);
-    persist(defaultProducts, "Data terbaru dari file products.js sudah digunakan.");
-    setEditingId(null);
-    setForm(emptyProduct);
-    setPage(1);
+  const resetProducts = async () => {
+    try {
+      const latest = await fetchProducts();
+      persist(withOrder(latest), "Katalog terbaru dari Supabase sudah dimuat.");
+      setEditingId(null);
+      setForm(emptyProduct);
+      setPage(1);
+    } catch { setNotice("Gagal memuat katalog dari Supabase. Silakan coba lagi."); }
   };
-
   const readUpload = (field) => (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -361,7 +348,7 @@ export default function AdminPage() {
           <label>Upload gambar katalog<input type="file" accept="image/*" onChange={readUpload("catalogImageUrl")} /></label>
           <label>Warna logo<input type="color" value={form.color || "#2563eb"} onChange={(event) => updateField("color", event.target.value)} /></label>
           <div className="admin-preview"><span>Preview katalog</span>{form.catalogImageUrl ? <img src={form.catalogImageUrl} alt="Preview katalog" /> : <strong>Belum ada gambar</strong>}</div>
-          <div className="admin-form-actions"><button className="admin-primary" type="submit">{editingId ? "Simpan Perubahan" : "Tambah Produk"}</button><button className="admin-ghost" type="button" onClick={resetProducts}>Gunakan Data dari File Kode</button></div>
+          <div className="admin-form-actions"><button className="admin-primary" type="submit">{editingId ? "Simpan Perubahan" : "Tambah Produk"}</button><button className="admin-ghost" type="button" onClick={resetProducts}>Muat Ulang dari Supabase</button></div>
         </form>
       </section>
 

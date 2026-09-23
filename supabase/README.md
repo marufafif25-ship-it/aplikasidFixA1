@@ -22,7 +22,7 @@ LEGACY_PRODUCTS_API_URL='https://script.google.com/macros/s/DEPLOYMENT_ID/exec' 
 7. Jalankan `npm run dev`, buka toko dan `/adminn`, login menggunakan email admin baru. Uji tambah/edit/hapus produk, urutan produk, homepage, footer, dan FAQ. Pastikan perubahan terlihat dari browser lain.
 8. Isi environment variable yang sama di hosting, kemudian rebuild/deploy. Kode Next.js sekarang memakai Supabase; file statis lama `index.html`/`app.js` bukan aplikasi Next.js ini.
 
-Jangan matikan endpoint lama sebelum data impor dan web baru diverifikasi. Data lokal/default tetap tampil saat koneksi gagal; tampilnya katalog saja bukan bukti koneksi berhasil. Build dapat dijalankan tanpa env, tetapi akses database membutuhkan konfigurasi yang benar.
+Jangan matikan endpoint lama sebelum data impor dan web baru diverifikasi. Halaman utama mengambil katalog dari Supabase di server; data contoh dan localStorage tidak digunakan sebagai sumber katalog. Cache server diperiksa ulang setelah 60 detik. Perubahan melalui admin memverifikasi token serta role, menyimpan dengan RLS, lalu menghapus cache agar permintaan berikutnya mengambil data terbaru. Perubahan langsung di dashboard Supabase mengikuti interval cache. Jika pengambilan gagal tanpa cache yang tersedia, halaman menampilkan tombol coba lagi. Build dapat dijalankan tanpa env, tetapi akses database membutuhkan konfigurasi yang benar.
 
 Dokumentasi: https://supabase.com/docs/guides/getting-started/quickstarts/reactjs
 

@@ -84,3 +84,4 @@
 .catalog-page-controls button:focus-visible{outline:3px solid #93c5fd;outline-offset:3px}
 .catalog-page-gap{color:#64748b;padding:0 2px}
 @media(max-width:600px){.catalog-pagination{flex-direction:column;gap:12px}.catalog-page-controls{justify-content:center;flex-wrap:wrap}.catalog-page-controls button{padding-inline:10px}.catalog-page-controls>button span{display:none}}
+.catalog-loading{padding-block:48px}.catalog-loading h1{font:700 25px Outfit;margin-bottom:24px}.catalog-skeleton{height:350px;border-radius:16px;background:linear-gradient(110deg,#e2e8f0 20%,#f1f5f9 40%,#e2e8f0 60%);background-size:200% 100%;animation:catalog-loading 1.4s ease infinite}@keyframes catalog-loading{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){.catalog-skeleton{animation:none}}
