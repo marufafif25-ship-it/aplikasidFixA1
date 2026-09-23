@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getAdminUser, signOutAdmin, saveProducts, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
+import OrderEditor from "./order-editor";
+import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
 
 const STORAGE_KEY = "aplikasiid_products";
 const PAGE_SIZE = 15;
@@ -63,6 +64,7 @@ const mergeStoredOrder = (items) => {
 
 export default function AdminPage() {
   const [authReady, setAuthReady] = useState(false);
+  const [ordering, setOrdering] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
   const [loginForm, setLoginForm] = useState({ login: "", password: "" });
   const [productList, setProductList] = useState([]);
@@ -153,25 +155,6 @@ export default function AdminPage() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orderedProducts));
     setNotice(message);
     window.setTimeout(() => setNotice(""), 2500);
-  };
-
-  const saveOrder = async (nextProducts) => {
-    const orderedProducts = nextProducts.map((product, index) => ({ ...product, sortOrder: index }));
-    try {
-      await saveProducts(orderedProducts);
-      persist(orderedProducts, "Urutan produk berhasil disimpan.");
-    } catch {
-      setNotice("Gagal menyimpan urutan ke Supabase. Silakan coba lagi.");
-    }
-  };
-
-  const moveProduct = (productId, direction) => {
-    const index = productList.findIndex((product) => product.id === productId);
-    const targetIndex = index + direction;
-    if (index < 0 || targetIndex < 0 || targetIndex >= productList.length) return;
-    const nextProducts = [...productList];
-    [nextProducts[index], nextProducts[targetIndex]] = [nextProducts[targetIndex], nextProducts[index]];
-    saveOrder(nextProducts);
   };
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
@@ -354,11 +337,12 @@ export default function AdminPage() {
 
       <section className="admin-list-section">
         <div className="admin-section-heading"><div><p className="admin-eyebrow">KATALOG</p><h2>Semua produk</h2></div><label className="admin-search"><span>⌕</span><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Cari produk..." /></label></div>
-        <p className="admin-drag-hint">Tarik kartu untuk mengubah urutan, atau gunakan tombol naik/turun.</p>
-        <div className="admin-product-grid">{visibleProducts.map((product, index) => <article className="admin-product-row" key={product.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/product-id", product.id)} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { const sourceId = event.dataTransfer.getData("text/product-id"); const sourceIndex = productList.findIndex((item) => item.id === sourceId); const targetIndex = productList.findIndex((item) => item.id === product.id); if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return; const nextProducts = [...productList]; const [movedProduct] = nextProducts.splice(sourceIndex, 1); nextProducts.splice(targetIndex, 0, movedProduct); saveOrder(nextProducts); }}><span className="admin-drag-handle" title="Tarik untuk mengurutkan">⋮⋮</span><div className="admin-product-image">{product.catalogImageUrl ? <img src={product.catalogImageUrl} alt="" /> : <img src={product.imageUrl} alt="" />}</div><div className="admin-product-info"><strong>{product.title}</strong><span>{product.category} · {formatRp(product.price)}</span><small>Urutan {((page - 1) * PAGE_SIZE) + index + 1} · {product.buyUrl ? "URL beli aktif" : "Masuk keranjang"}</small></div><div className="admin-row-actions"><div className="admin-order-actions"><button className="admin-ghost" type="button" disabled={index === 0 && page === 1} onClick={() => moveProduct(product.id, -1)} aria-label={`Naikkan ${product.title}`}>↑</button><button className="admin-ghost" type="button" disabled={index === visibleProducts.length - 1 && page === pageCount} onClick={() => moveProduct(product.id, 1)} aria-label={`Turunkan ${product.title}`}>↓</button></div><button className="admin-ghost" type="button" onClick={() => editProduct(product)}>Edit</button><button className="admin-danger" type="button" onClick={() => removeProduct(product.id)}>Hapus</button></div></article>)}</div>
+        <div className="admin-order-toolbar"><p>Atur posisi aplikasi di seluruh katalog, termasuk antarhalaman.</p><button className="admin-primary" type="button" disabled={productList.length < 2} onClick={() => setOrdering(true)}>↕ Atur Urutan</button></div>
+        <div className="admin-product-grid">{visibleProducts.map((product) => <article className="admin-product-row" key={product.id}><div className="admin-product-image"><img src={product.catalogImageUrl || product.imageUrl} alt="" loading="lazy" /></div><div className="admin-product-info"><strong>{product.title}</strong><span>{product.category} · {formatRp(product.price)}</span><small>Urutan {productList.findIndex((item) => item.id === product.id) + 1} · {product.buyUrl ? "URL beli aktif" : "Masuk keranjang"}</small></div><div className="admin-row-actions"><button className="admin-ghost" type="button" onClick={() => editProduct(product)}>Edit</button><button className="admin-danger" type="button" onClick={() => removeProduct(product.id)}>Hapus</button></div></article>)}</div>
         {visibleProducts.length === 0 && <div className="admin-empty">Produk tidak ditemukan.</div>}
         <div className="admin-pagination"><span>Menampilkan {visibleProducts.length} dari {filteredProducts.length} produk</span><div><button className="admin-ghost" type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>← Sebelumnya</button><strong>Halaman {page} / {pageCount}</strong><button className="admin-ghost" type="button" disabled={page === pageCount} onClick={() => setPage((current) => current + 1)}>Berikutnya →</button></div></div>
       </section>
+      {ordering && <OrderEditor products={productList} onClose={() => setOrdering(false)} onSaved={(ordered) => { persist(ordered, "Urutan berhasil disimpan dan katalog diperbarui."); setForm((current) => { const updated = ordered.find((item) => item.id === current.id); return updated ? { ...current, sortOrder: updated.sortOrder } : current; }); setOrdering(false); setPage(1); }} />}
       {notice && <div className="admin-toast">✓ {notice}</div>}
     </main>
   );
