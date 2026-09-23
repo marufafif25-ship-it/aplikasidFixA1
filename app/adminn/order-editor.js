@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CloseIcon } from "../icons";
 import { saveProducts } from "../../lib/products-api";
 
 export function moveItem(items, id, target) {
@@ -50,7 +51,7 @@ export default function OrderEditor({ products, onClose, onSaved }) {
   };
 
   return <dialog ref={dialog} className="order-dialog" aria-labelledby="order-title" onCancel={(event) => { event.preventDefault(); if (!savingRef.current) onClose(); }}>
-    <header className="order-header"><div><h2 id="order-title">Atur urutan aplikasi</h2><p>Tarik baris di desktop, gunakan panah, atau pilih posisi tujuan. Nomor 1 tampil paling awal di katalog.</p></div><button type="button" className="admin-ghost" disabled={saving} onClick={onClose} aria-label="Tutup tanpa menyimpan">×</button></header>
+    <header className="order-header"><div><h2 id="order-title">Atur urutan aplikasi</h2><p>Tarik baris di desktop, gunakan panah, atau pilih posisi tujuan. Nomor 1 tampil paling awal di katalog.</p></div><button type="button" className="admin-ghost order-close" disabled={saving} onClick={onClose} aria-label="Tutup tanpa menyimpan"><CloseIcon /></button></header>
     <div className="order-list" aria-busy={saving}>
       {items.map((item, index) => <div key={item.id} className={`order-row${target === item.id ? " order-drop-target" : ""}${dragged === item.id ? " order-dragging" : ""}`} onDragOver={(event) => { if (dragged && !saving) { event.preventDefault(); setTarget(item.id); } }} onDrop={(event) => { event.preventDefault(); if (dragged) move(dragged, index); setDragged(null); setTarget(null); }}>
         <span className="order-grip" draggable={!saving} title="Tarik untuk memindahkan" onDragStart={(event) => { event.dataTransfer.setData("text/plain", item.id); event.dataTransfer.effectAllowed = "move"; setDragged(item.id); }} onDragEnd={() => { setDragged(null); setTarget(null); }}>⠿</span>

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { SearchIcon, CloseIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 
 const defaultHeroSettings = {
@@ -43,6 +44,7 @@ const normalizeFooterSettings = (settings) => ({ ...defaultFooterSettings, ...se
 export default function Storefront({ initialData }) {
   const productList = initialData.products;
   const [catalogPage, setCatalogPage] = useState(1);
+  const searchRef = useRef(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
@@ -134,7 +136,7 @@ export default function Storefront({ initialData }) {
             <button className="nav-link" onClick={() => scrollTo("garansi")}>Garansi</button>
           </nav>
           <div className="nav-actions">
-            <button className="action-btn" onClick={() => scrollTo("produk")} aria-label="Cari produk">⌕</button>
+            <button type="button" className="action-btn" onClick={() => { scrollTo("produk"); searchRef.current?.focus({ preventScroll: true }); }} aria-label="Cari produk"><SearchIcon /></button>
           </div>
         </div>
       </header>
@@ -159,7 +161,7 @@ export default function Storefront({ initialData }) {
 
         <section className="toolbar-section" id="produk">
           <div className="container toolbar-card">
-            <label className="search-box"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari software original..." /></label>
+            <label className="search-box"><span><SearchIcon /></span><input ref={searchRef} aria-label="Cari aplikasi" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari software original..." /></label>
             <select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="Pilih kategori"><option value="all">Semua Kategori</option><option value="Design">Design &amp; Grafis</option><option value="Engineering">Engineering &amp; 3D</option><option value="Video">Video &amp; Animation</option><option value="Office">Office &amp; Produksi</option><option value="Utility">System &amp; Utility</option></select>
             <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="Urutkan produk"><option value="newest">Terbaru</option><option value="popular">Terpopuler</option><option value="price-low">Harga Termurah</option><option value="price-high">Harga Tertinggi</option></select>
           </div>
@@ -239,7 +241,7 @@ function ProductModal({ product, onClose, onBuy }) {
   };
 
   return <dialog ref={dialogRef} className="modal-container product-dialog" aria-labelledby={titleId} aria-modal="true" onCancel={(event) => { event.preventDefault(); onClose(); }} onPointerDown={(event) => { backdropStart.current = outsideDialog(event); }} onClick={(event) => { if (backdropStart.current && outsideDialog(event)) onClose(); backdropStart.current = false; }}>
-    <button type="button" className="modal-close" onClick={onClose} aria-label="Tutup detail produk">×</button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2 id={titleId} ref={headingRef} tabIndex={-1}>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div></dialog>;
+    <button type="button" className="modal-close" onClick={onClose} aria-label="Tutup detail produk"><CloseIcon /></button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2 id={titleId} ref={headingRef} tabIndex={-1}>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div></dialog>;
 }
 
 function InfoCard({ icon, title, text }) { return <article className="info-card"><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>; }
