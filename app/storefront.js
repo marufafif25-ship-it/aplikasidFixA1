@@ -5,7 +5,6 @@ import Image from "next/image";
 import { getCheckoutUrl } from "../lib/checkout";
 
 const defaultHeroSettings = {
-  badge: "238+ Software Aktif",
   title: "Software Original",
   titleLineTwo: "untuk Tugas & Kerja",
   description: "Solusi software terpercaya untuk kebutuhan kerja, desain, editing, dan bisnis dengan proses aktivasi cepat serta bantuan pelanggan.",
@@ -145,7 +144,7 @@ export default function Storefront({ initialData }) {
           <div className="container">
             <div className="hero-banner">
               <div className="hero-content">
-                <span className="hero-badge">▱ &nbsp; {heroSettings.badge}</span>
+                <span className="hero-badge">▱ &nbsp; {productList.length.toLocaleString("id-ID")} Software Aktif</span>
                 <h1>{heroSettings.title}<br />{heroSettings.titleLineTwo}</h1>
                 <p>{heroSettings.description}</p>
                 <div className="hero-cta"><button className="btn-primary" onClick={() => scrollTo(heroSettings.primaryTarget || "produk")}>{heroSettings.primaryLabel} <span>→</span></button></div>

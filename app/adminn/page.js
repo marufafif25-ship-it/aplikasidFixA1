@@ -7,7 +7,6 @@ import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFoot
 const STORAGE_KEY = "aplikasiid_products";
 const PAGE_SIZE = 15;
 const defaultHeroSettings = {
-  badge: "238+ Software Aktif",
   title: "Software Original",
   titleLineTwo: "untuk Tugas & Kerja",
   description: "Solusi software terpercaya untuk kebutuhan kerja, desain, editing, dan bisnis dengan proses aktivasi cepat serta bantuan pelanggan.",
@@ -282,7 +281,7 @@ export default function AdminPage() {
       <section className="admin-editor admin-hero-editor">
         <div className="admin-section-heading"><div><p className="admin-eyebrow">HOMEPAGE EDITOR</p><h2>Hero section</h2></div><span className="admin-editor-note">Perubahan tampil di bagian paling atas toko</span></div>
         <form className="admin-form" onSubmit={saveHero}>
-          <label>Badge kecil<input value={heroSettings.badge} onChange={(event) => updateHero("badge", event.target.value)} /></label>
+          <label>Jumlah aplikasi (otomatis)<input value={`${productList.length.toLocaleString("id-ID")} Software Aktif`} readOnly /><small>Mengikuti total produk di katalog.</small></label>
           <label>Judul utama<input value={heroSettings.title} onChange={(event) => updateHero("title", event.target.value)} /></label>
           <label>Judul baris kedua<input value={heroSettings.titleLineTwo} onChange={(event) => updateHero("titleLineTwo", event.target.value)} /></label>
           <label className="admin-wide">Deskripsi<textarea value={heroSettings.description} onChange={(event) => updateHero("description", event.target.value)} /></label>
