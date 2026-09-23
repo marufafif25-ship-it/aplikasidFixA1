@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { SearchIcon, CloseIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
@@ -220,16 +220,32 @@ function ProductModal({ product, onClose, onBuy }) {
   const titleId = useId();
   const backdropStart = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = dialogRef.current;
     const opener = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const properties = ["position", "top", "left", "width", "overflow"];
+    const previousStyles = properties.map((name) => [name, body.style.getPropertyValue(name), body.style.getPropertyPriority(name)]);
+
+    // Lock the existing viewport before the browser focuses the native dialog.
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = `-${scrollX}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
     dialog.showModal();
     headingRef.current?.focus({ preventScroll: true });
-    document.body.style.overflow = "hidden";
+    dialog.scrollTop = 0;
+
     return () => {
       dialog.close();
-      document.body.style.overflow = previousOverflow;
+      for (const [name, value, priority] of previousStyles) {
+        if (value) body.style.setProperty(name, value, priority);
+        else body.style.removeProperty(name);
+      }
+      window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true });
     };
   }, []);
