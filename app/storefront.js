@@ -136,6 +136,7 @@ export default function Storefront({ initialData }) {
             <button className="nav-link" onClick={() => scrollTo("garansi")}>Garansi</button>
           </nav>
           <div className="nav-actions">
+            <a className="customer-account-link" href="/akun">Akun Saya</a>
             <button type="button" className="action-btn" onClick={() => { scrollTo("produk"); searchRef.current?.focus({ preventScroll: true }); }} aria-label="Cari produk"><SearchIcon /></button>
           </div>
         </div>
