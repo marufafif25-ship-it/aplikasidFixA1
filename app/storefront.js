@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { SearchIcon, CloseIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 
@@ -53,6 +54,9 @@ export default function Storefront({ initialData }) {
   const heroSettings = { ...defaultHeroSettings, ...initialData.homepage };
   const footerSettings = normalizeFooterSettings(initialData.footer);
   const [chatOpen, setChatOpen] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("chat") === "1") setChatOpen(true);
+  }, []);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([{ from: "bot", text: "Halo! Saya CS Aplikasi.id. Ada yang bisa saya bantu?" }]);
   const faqItems = normalizeFaqItems(initialData.faq);
@@ -132,7 +136,7 @@ export default function Storefront({ initialData }) {
           <nav className="nav-menu" aria-label="Navigasi utama">
             <button className="nav-link active" onClick={() => scrollTo("home")}>Beranda</button>
             <button className="nav-link" onClick={() => scrollTo("produk")}>Produk</button>
-            <button className="nav-link" onClick={() => scrollTo("bantuan")}>Bantuan</button>
+            <Link className="nav-link" style={{ textDecoration: "none" }} href="/panduan">Bantuan</Link>
             <button className="nav-link" onClick={() => scrollTo("garansi")}>Garansi</button>
           </nav>
           <div className="nav-actions">
@@ -188,7 +192,7 @@ export default function Storefront({ initialData }) {
         </section>
 
         <section className="info-section" id="garansi"><div className="container info-grid"><InfoCard icon="ϟ" title="Aktivasi Cepat" text="Pesanan diproses dengan cepat dan panduan instalasi tersedia untuk setiap software." /><InfoCard icon="♢" title="Garansi Selamanya" text="Garansi permanen update dan penggantian link jika ada masalah instalasi." /><InfoCard icon="⇩" title="Direct Google Drive" text="Akses download kencang, aman, dan dilengkapi panduan langkah demi langkah." /></div></section>
-        <section className="help-section" id="bantuan"><div className="container"><h2>Butuh bantuan memilih software?</h2><p>Tim kami siap membantu menemukan paket yang sesuai kebutuhan kerja dan perangkat Anda.</p><button className="btn-primary" onClick={() => setChatOpen(true)}>Hubungi CS →</button></div></section>
+        <section className="help-section" id="bantuan"><div className="container"><h2>Butuh bantuan memilih software?</h2><p>Tim kami siap membantu menemukan paket yang sesuai kebutuhan kerja dan perangkat Anda.</p><div className="store-help-actions"><Link className="btn-primary" href="/panduan">Buka Pusat Bantuan →</Link><button className="store-help-contact" onClick={() => setChatOpen(true)}>Hubungi CS ↗</button></div></div></section>
       </main>
 
       <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links">{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
