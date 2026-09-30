@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import OrderEditor from "./order-editor";
+import DownloadEditor from "./download-editor";
 import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
 
 const STORAGE_KEY = "aplikasiid_products";
@@ -277,6 +278,8 @@ export default function AdminPage() {
         <div><strong>{productList.filter((product) => product.catalogImageUrl).length}</strong><span>Dengan katalog</span></div>
         <div><strong>{productList.filter((product) => product.buyUrl).length}</strong><span>URL beli aktif</span></div>
       </section>
+
+      <DownloadEditor />
 
       <section className="admin-editor admin-hero-editor">
         <div className="admin-section-heading"><div><p className="admin-eyebrow">HOMEPAGE EDITOR</p><h2>Hero section</h2></div><span className="admin-editor-note">Perubahan tampil di bagian paling atas toko</span></div>

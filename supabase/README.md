@@ -30,44 +30,37 @@ Dokumentasi: https://supabase.com/docs/guides/getting-started/quickstarts/reactj
 
 Jalankan `python3 scripts/import-local-csv.py` untuk membuat `supabase/import-data.sql` dari CSV lokal. Jalankan SQL tersebut di SQL Editor project Supabase setelah `schema.sql`. Script memvalidasi ID unik dan angka, mengubah specs menjadi array, serta menyimpan gambar base64 sebagai aset di `public/assets/imported/`. Sertakan aset tersebut saat deploy. ID yang sudah ada tidak ditimpa. File auth.csv tidak dimasukkan ke tabel publik; buat akun melalui Supabase Auth sesuai langkah di atas.
 
-## Akun pelanggan dan webhook Lynk.id
+## Akses pembelian dengan email checkout
 
-Implementasi baru:
-- `/akun`: login melalui tautan email Supabase dan riwayat pembelian, 10 transaksi per halaman. `/login` mengarah ke `/akun`.
-- `/api/webhook/lynk`: menerima POST `payment.received`, memverifikasi `X-Lynk-Signature`, menyimpan pembayaran sukses.
-- Transaksi dicocokkan ke email checkout, dinormalisasi huruf kecil. Tidak harus membuat akun sebelum membeli.
-- RLS membaca email terverifikasi dari `auth.users` berdasarkan `auth.uid()`. Pengguna tidak bisa membaca transaksi email lain atau menulis transaksi melalui browser. Metadata profil tidak digunakan untuk menentukan pemilik.
-- Satu baris per `refId`; pengiriman ulang diabaikan tanpa menimpa transaksi sebelumnya. Ini mencegah order ganda; tidak ada email/pengiriman produk tambahan dari webhook.
+`/akun` sekarang menampilkan produk dan tombol Google Drive setelah pembeli memasukkan email checkout. Tidak memakai Supabase Auth, password, OTP, atau pengiriman email. `/login` tetap mengarah ke `/akun`. Sesuai pilihan pemilik toko, pengetahuan atas email checkout cukup untuk membuka pembelian; ini bukan verifikasi identitas.
 
 ### Aktivasi
 
-1. Jalankan `supabase/lynk-orders.sql` melalui SQL Editor project Supabase yang sama. Ini migrasi terpisah, bukan bagian dari `schema.sql`.
-2. Di Supabase Authentication, aktifkan Email provider dan pendaftaran pengguna. Gunakan template Magic Link dengan `{{ .ConfirmationURL }}`. Login pertama otomatis membuat akun setelah verifikasi email.
-3. Atur Site URL ke `https://www.aplikasid.my.id`. Tambahkan Redirect URL `https://www.aplikasid.my.id/akun`, serta `http://localhost:3000/akun` untuk pengujian lokal. Konfigurasikan SMTP produksi agar email login dapat dikirim ke pelanggan (layanan email bawaan Supabase memiliki pembatasan).
-4. Tambahkan `SUPABASE_SECRET_KEY` (atau legacy `SUPABASE_SERVICE_ROLE_KEY`) ke environment hosting dan `.env.local` untuk pengujian. Jangan beri awalan `NEXT_PUBLIC_`, jangan commit secret.
-5. Deploy, lalu simpan URL webhook `https://www.aplikasid.my.id/api/webhook/lynk` di dashboard Lynk.id. Menurut dokumentasi, merchant key muncul setelah URL disimpan.
-6. Simpan merchant key di environment hosting sebagai `LYNK_MERCHANT_KEY`, lalu redeploy. Endpoint mengembalikan 503 sampai konfigurasi lengkap; jangan mulai transaksi uji sebelum siap.
-7. Uji pembayaran dengan email sendiri. Buka `/akun`, minta tautan masuk dengan email yang sama, dan verifikasi bahwa transaksi muncul.
+1. Jalankan `supabase/lynk-orders.sql` jika belum diterapkan, lalu `supabase/product-downloads.sql` di SQL Editor project yang sama.
+2. Pastikan hosting memiliki `SUPABASE_SECRET_KEY` atau `SUPABASE_SERVICE_ROLE_KEY`, selain URL dan publishable key Supabase. Key server tetap privat, tanpa awalan `NEXT_PUBLIC_`. Endpoint webhook yang sudah aktif menggunakan key server yang sama. `.env.local` juga membutuhkan key server untuk mencoba data nyata secara lokal.
+3. Buka `/adminn`, login dengan akun admin yang sudah ada, lalu bagian **Link Google Drive produk Lynk**. Pilih produk dari transaksi, isi nama/keterangan yang akan tampil ke pembeli, masukkan link Google Drive secara manual, dan simpan. Pengaturan cukup satu kali per ID produk, bukan per email pelanggan. Daftar pilihan menggabungkan 1.000 transaksi terbaru dengan pemetaan yang sudah disimpan; produk lain dapat ditambahkan manual memakai `items[].uuid` dari transaksi.
+4. Deploy kode, buka `/akun`, lalu masukkan email checkout yang memiliki pembayaran tercatat. Uji link produk yang sudah dipetakan, produk belum dipetakan, email tidak ditemukan, dan pagination.
 
-### Pemeriksaan sebelum produksi
+Nama, keterangan, dan link Drive disimpan dalam tabel `product_downloads`, terpisah dari katalog `products` yang bisa dibaca publik. Hanya admin dan server yang dapat membaca/menulis pemetaan langsung. API pembelian mencocokkan email secara persis setelah trim/lowercase, hanya membaca pembayaran `paid`, dan hanya mengembalikan link dengan `lynk_item_id` yang sama persis dengan `items[].uuid`. Nama produk dan kode pendek URL checkout tidak dipakai untuk menebak kecocokan.
 
-- Jalankan `node --test tests/lynk-webhook.test.mjs` dan `npm run build`.
-- Uji login, tautan kedaluwarsa, logout, dan email checkout yang berbeda.
-- Dengan dua akun terverifikasi A dan B: buat pembelian A, lalu pastikan B tidak bisa membaca transaksi A, termasuk melalui query langsung ke tabel `lynk_orders`. Anonim tidak memiliki akses SELECT; pengguna biasa tidak memiliki INSERT/UPDATE/DELETE.
-- Kirim ulang payload yang sama dua kali: tabel harus tetap satu baris untuk refId itu.
-- Signature salah harus menghasilkan 401 dan tidak menulis data. Database gagal harus menghasilkan 500, bukan sukses.
-- Jadwal/jumlah retry Lynk tidak dijelaskan dalam dokumentasi; pantau kegagalan dan lakukan rekonsiliasi jika ada notifikasi terlewat. Pembelian lama tidak otomatis diimpor.
+Integrasi webhook saat ini menyimpan ID, nama, harga, dan jumlah item; tidak menyimpan link unduhan dari produk Lynk. Link perlu disalin sekali per ID produk ke pengaturan admin; perubahan link di Lynk perlu diperbarui di admin juga. Link yang belum dipetakan/nonaktif menampilkan pesan bahwa unduhan sedang disiapkan, dengan arahan ke bukti pembelian Lynk. Pembelian sebelum integrasi webhook aktif tidak otomatis diimpor.
 
-Nominal `grandTotal` di dokumentasi Lynk adalah pendapatan bersih penjual. UI hanya menampilkan harga item dan jumlah, dengan catatan bahwa add-on, diskon, serta biaya lain ada di bukti pembayaran Lynk. Timestamp sumber disimpan sebagai teks karena contoh Lynk tidak memberi zona waktu; UI menampilkan waktu notifikasi diterima dalam WIB. Data jawaban tambahan, alamat, nomor telepon, dan payload mentah tidak disimpan. Produk unduhan tetap mengikuti email Lynk; webhook ini tidak menyediakan URL unduhan.
+API menggunakan POST dan `Cache-Control: private, no-store`. Email serta hasil pencarian tidak disimpan di URL atau localStorage. RLS tabel transaksi tetap aktif dan browser tidak mendapat akses baca anonim langsung ke tabel. Login admin tetap menggunakan Supabase Auth seperti sebelumnya.
 
-Referensi: https://documenter.getpostman.com/view/43601478/2sBXc8o3kn
-Login email: https://supabase.com/docs/guides/auth/auth-email-passwordless
+### Webhook Lynk
 
-Pengujian RLS lokal terisolasi (PGlite/PostgreSQL, tidak mengakses database produksi):
+`/api/webhook/lynk` menerima `payment.received`, memverifikasi `X-Lynk-Signature`, dan menyimpan satu transaksi per `refId`. Pengiriman ulang tidak menimpa transaksi sebelumnya. URL webhook: `https://www.aplikasid.my.id/api/webhook/lynk`; simpan merchant key sebagai `LYNK_MERCHANT_KEY` pada hosting. Perubahan akses pembelian tidak mengubah alur webhook.
+
+Timestamp Lynk disimpan sebagai teks karena sumber tidak menyertakan zona waktu. UI menggunakan `received_at` dalam WIB. Data jawaban tambahan, alamat, nomor telepon, dan payload mentah tidak disimpan.
+
+### Pengujian
 
 ```sh
+node --test tests/*.test.mjs
+npm run build
 npm install --prefix /tmp/aplikasid-db-check --no-audit --no-fund @electric-sql/pglite
 PGLITE_MODULE=/tmp/aplikasid-db-check/node_modules/@electric-sql/pglite/dist/index.js node tests/lynk-orders-rls.mjs
+PGLITE_MODULE=/tmp/aplikasid-db-check/node_modules/@electric-sql/pglite/dist/index.js node tests/product-downloads-rls.mjs
 ```
 
-Test ini memeriksa migrasi bisa diulang, pembatasan SELECT antar dua akun, penolakan email belum terverifikasi dan akun anonim, penolakan penulisan oleh pelanggan, serta duplikat yang tidak mengubah pemilik transaksi. Tetap uji proyek Supabase sebenarnya setelah migrasi diterapkan.
+Pengujian lokal memakai data buatan, tidak mengakses transaksi produksi. Uji juga dengan email checkout nyata setelah pemetaan link dan deployment selesai.
