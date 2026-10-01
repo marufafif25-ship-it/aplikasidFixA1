@@ -19,9 +19,11 @@ FAQ aktif dari Supabase, dan panduan toko sebagai konteks. Riwayat terbatas pada
 4. Buka `/?chat=1`, tanyakan kebutuhan software, lalu kirim pertanyaan lanjutan.
 
 API key hanya dibaca di server; jangan gunakan awalan `NEXT_PUBLIC_`.
-`openrouter/free` memilih model gratis yang tersedia. Model tertentu boleh
-digunakan jika ID-nya berakhiran `:free`; backend menolak model berbayar.
-Lihat [dokumentasi router gratis](https://openrouter.ai/openrouter/free).
+Model default adalah [router gratis OpenRouter](https://openrouter.ai/openrouter/free),
+yang memilih dari model gratis yang tersedia. Gaya jawaban dapat berbeda antar model.
+Pastikan `OPENROUTER_MODEL` di hosting diisi `openrouter/free`, karena environment
+hosting mengesampingkan default kode. FAQ tetap tersedia saat AI gagal merespons.
+Model alternatif harus berakhiran `:free`; backend menolak model berbayar.
 Ketersediaan dan kuota tetap mengikuti OpenRouter.
 
 ## Saat AI tidak tersedia
