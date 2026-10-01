@@ -16,6 +16,7 @@ for (const settings of [homepage, footer]) {
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) throw new Error('Format pengaturan tidak valid.');
 }
 const sql = ['begin;', 'set local standard_conforming_strings = on;'];
+delete footer.email;
 products.forEach((product, index) => {
   if (!product.id) throw new Error(`Produk ${index} tidak memiliki ID.`);
   const order = Number.isFinite(Number(product.sortOrder)) && product.sortOrder !== '' ? Math.trunc(Number(product.sortOrder)) : index;

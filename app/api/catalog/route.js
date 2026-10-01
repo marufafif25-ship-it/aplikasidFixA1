@@ -17,6 +17,7 @@ export async function POST(request) {
     } else if (payload.action === "delete_product" && typeof payload.id === "string" && payload.id) {
       result = await client.from("products").delete().eq("id", payload.id);
     } else if (payload.action === "save_settings" && ["homepage", "footer"].includes(payload.id) && payload.settings && typeof payload.settings === "object" && !Array.isArray(payload.settings)) {
+      if (payload.id === "footer") delete payload.settings.email;
       result = await client.from("site_settings").upsert({ id: payload.id, data: payload.settings });
     } else {
       return Response.json({ error: "Data tidak valid." }, { status: 400 });

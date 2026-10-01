@@ -24,8 +24,7 @@ const defaultFooterSettings = {
   description: "Pusat software terpercaya untuk kebutuhan kerja dan bisnis.",
   copyright: "© 2026. Semua hak dilindungi.",
   whatsapp: "",
-  tiktok: "",
-  email: ""
+  tiktok: ""
 };
 
 const emptyProduct = {
@@ -48,7 +47,7 @@ const emptyProduct = {
 const formatRp = (amount) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(amount) || 0);
 const hasSortOrder = (value) => value !== "" && value !== null && value !== undefined && Number.isFinite(Number(value));
 const withOrder = (items) => items.map((product, index) => ({ ...product, sortOrder: hasSortOrder(product.sortOrder) ? Number(product.sortOrder) : index }));
-const normalizeFooterSettings = (settings) => ({ ...defaultFooterSettings, ...settings, tiktok: settings.tiktok || settings.instagram || "" });
+const normalizeFooterSettings = ({ email, ...settings }) => ({ ...defaultFooterSettings, ...settings, tiktok: settings.tiktok || settings.instagram || "" });
 const mergeStoredOrder = (items) => {
   if (typeof window === "undefined") return withOrder(items);
   try {
@@ -308,7 +307,6 @@ export default function AdminPage() {
           <label className="admin-wide">Teks copyright<input value={footerSettings.copyright} onChange={(event) => updateFooter("copyright", event.target.value)} /></label>
           <label>URL WhatsApp<input type="url" value={footerSettings.whatsapp} onChange={(event) => updateFooter("whatsapp", event.target.value)} placeholder="https://wa.me/..." /></label>
           <label>URL TikTok<input type="url" value={footerSettings.tiktok} onChange={(event) => updateFooter("tiktok", event.target.value)} placeholder="https://tiktok.com/@..." /></label>
-          <label>Email kontak<input type="email" value={footerSettings.email} onChange={(event) => updateFooter("email", event.target.value)} placeholder="halo@contoh.com" /></label>
           <div className="admin-footer-mini-preview"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small><span>{footerSettings.copyright}</span></div>
           <div className="admin-form-actions"><button className="admin-primary" type="submit">Simpan Footer</button><button className="admin-ghost" type="button" onClick={() => setFooterSettings(defaultFooterSettings)}>Kembalikan Default</button></div>
         </form>

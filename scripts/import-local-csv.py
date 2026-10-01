@@ -77,6 +77,8 @@ for name, target in [("homepage_settings", "homepage"), ("footer", "footer")]:
     rows = read(name)
     unique(rows, "key")
     settings = {row["key"].strip(): row["value"] for row in rows}
+    if target == "footer":
+        settings.pop("email", None)
     settings_counts[target] = len(settings)
     sql.append(f"insert into public.site_settings(id,data) values ({literal(target)},{json_sql(settings)}) on conflict (id) do nothing;")
 

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchIcon, CloseIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
+import ChatWidget from "./chat-widget";
 
 const defaultHeroSettings = {
   title: "Software Original",
@@ -23,8 +24,7 @@ const defaultFooterSettings = {
   description: "Pusat software terpercaya untuk kebutuhan kerja dan bisnis.",
   copyright: "© 2026. Semua hak dilindungi.",
   whatsapp: "",
-  tiktok: "",
-  email: ""
+  tiktok: ""
 };
 const normalizeFaqItems = (items) => items.map((item, index) => ({
   id: item.id || `faq-${index}`,
@@ -41,7 +41,7 @@ const orderProducts = (items) => [...items].sort((a, b) => {
   const bOrder = b.sortOrder === "" || b.sortOrder === null || b.sortOrder === undefined ? Number.MAX_SAFE_INTEGER : Number(b.sortOrder);
   return (Number.isFinite(aOrder) ? aOrder : Number.MAX_SAFE_INTEGER) - (Number.isFinite(bOrder) ? bOrder : Number.MAX_SAFE_INTEGER);
 });
-const normalizeFooterSettings = (settings) => ({ ...defaultFooterSettings, ...settings, tiktok: settings.tiktok || settings.instagram || "" });
+const normalizeFooterSettings = ({ email, ...settings }) => ({ ...defaultFooterSettings, ...settings, tiktok: settings.tiktok || settings.instagram || "" });
 export default function Storefront({ initialData }) {
   const productList = initialData.products;
   const [catalogPage, setCatalogPage] = useState(1);
@@ -57,8 +57,6 @@ export default function Storefront({ initialData }) {
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("chat") === "1") setChatOpen(true);
   }, []);
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState([{ from: "bot", text: "Halo! Saya CS Aplikasi.id. Ada yang bisa saya bantu?" }]);
   const faqItems = normalizeFaqItems(initialData.faq);
   const filteredProducts = useMemo(() => {
     const normalized = query.toLowerCase().trim();
@@ -101,30 +99,6 @@ export default function Storefront({ initialData }) {
   };
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-//cara ubah template jawaban tiap cs//
-  const getChatReply = (message) => {
-    const text = message.toLowerCase();
-    const matchedFaq = faqItems.find((item) => String(item.keywords || "").toLowerCase().split(",").some((keyword) => keyword.trim() && text.includes(keyword.trim())));
-    if (matchedFaq) return matchedFaq.answer;
-    if (text.includes("order") || text.includes("beli") || text.includes("pesan")) return "Pilih software, klik Beli Sekarang, lalu ikuti halaman pembayaran yang terbuka.";
-    if (text.includes("bayar") || text.includes("pembayaran")) return "Pembayaran dilakukan melalui link checkout pada produk. Setelah pembayaran selesai, menerima email berisi link gdrive. Buka emailnya di laptop kak.";
-    if (text.includes("garansi") || text.includes("aman")) return "Setiap produk memiliki informasi garansi di katalog. Tim CS juga siap membantu jika ada kendala instalasi.";
-    if (text.includes("versi") || text.includes("software")) return "Kakanya bisa nyari software lewat kolom pencarian atau memilih kategori produk di katalog. Atau kalau mau lebih lengkapnya bisa ke link: s.id/aplikasid";
-    if (text.includes("invoice") || text.includes("pesanan")) return "Setelah pembayaran selesai, Anda akan menerima email konfirmasi dengan detail pesanan. Pengirim email dari lynk.id, buka email tersebut di laptop lalu klik link gdrive - lalu ikutin video tutorial cara installnya.";
-    return "Saya belum menemukan jawabannya. Silakan hubungi CS melalui WhatsApp agar dibantu langsung yah kak.";
-  };
-
-  const sendChatMessage = (message = chatInput) => {
-    const trimmed = message.trim();
-    if (!trimmed) return;
-    setChatMessages((current) => [...current, { from: "user", text: trimmed }, { from: "bot", text: getChatReply(trimmed) }]);
-    setChatInput("");
-  };
-
-  const sendFaqQuestion = (item) => {
-    setChatMessages((current) => [...current, { from: "user", text: item.question }, { from: "bot", text: item.answer }]);
-  };
-
   return (
     <>
       <header className="navbar-wrapper">
@@ -198,13 +172,9 @@ export default function Storefront({ initialData }) {
       <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links">{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
       {notice && <div className="toast" role="status">{notice}</div>}
       {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onBuy={buyProduct} />}
-      <ChatWidget open={chatOpen} setOpen={setChatOpen} input={chatInput} setInput={setChatInput} messages={chatMessages} faqItems={faqItems} onSend={sendChatMessage} onAskFaq={sendFaqQuestion} whatsapp={footerSettings.whatsapp} />
+      <ChatWidget open={chatOpen} setOpen={setChatOpen} faqItems={faqItems} whatsapp={footerSettings.whatsapp} />
     </>
   );
-}
-
-function ChatWidget({ open, setOpen, input, setInput, messages, faqItems, onSend, onAskFaq, whatsapp }) {
-  return <div className={`chat-widget${open ? " is-open" : ""}`}><button className="chat-launcher" type="button" onClick={() => setOpen(!open)} aria-label={open ? "Tutup chat CS" : "Buka chat CS"}>{open ? "×" : "✦"}<span className="chat-launcher-label">{open ? "Tutup" : "Chat CS"}</span></button>{open && <section className="chat-panel" aria-label="Chat CS Aplikasi.id"><header className="chat-panel-header"><div><strong>CS Aplikasi.id</strong><small>Pilih pertanyaan yang ingin Anda tanyakan</small></div><span className="chat-online-dot" /></header><div className="chat-messages">{messages.map((message, index) => <p className={`chat-message ${message.from}`} key={`${message.from}-${index}`}>{message.text}</p>)}</div><div className="chat-quick-title">Pertanyaan populer</div><div className="chat-quick-actions">{faqItems.slice(0, 6).map((item) => <button type="button" key={item.id} onClick={() => onAskFaq(item)}>{item.question}</button>)}</div><form className="chat-composer" onSubmit={(event) => { event.preventDefault(); onSend(); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Atau tulis pesan..." aria-label="Tulis pesan ke CS" /><button type="submit" aria-label="Kirim pesan">→</button></form>{whatsapp && <a className="chat-whatsapp" href={whatsapp} target="_blank" rel="noreferrer">Hubungi CS via WhatsApp <span>↗</span></a>}</section>}</div>;
 }
 
 // Local assets and the public Supabase image route use Next.js resizing/WebP.
