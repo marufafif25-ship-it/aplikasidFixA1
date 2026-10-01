@@ -118,3 +118,6 @@
 
 .customer-account-link{font-size:12px;font-weight:700;text-decoration:none;color:inherit;white-space:nowrap;padding:10px 12px;border:1px solid #94a3b840;border-radius:9px}.customer-account-link:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}
 .store-help-actions{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}.store-help-actions a{text-decoration:none}.store-help-contact{background:transparent;color:var(--blue);font-size:13px;font-weight:700;padding:12px}.store-help-actions :focus-visible{outline:3px solid #60a5fa;outline-offset:4px}
+
+.trust-badges>span{display:inline-flex;align-items:center;gap:7px}
+.trust-badges svg{flex-shrink:0;width:18px;height:18px;color:#bfdbfe}

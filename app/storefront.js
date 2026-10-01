@@ -3,7 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { SearchIcon, CloseIcon } from "./icons";
+import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 import ChatWidget from "./chat-widget";
 
@@ -129,7 +129,7 @@ export default function Storefront({ initialData }) {
                 <h1>{heroSettings.title}<br />{heroSettings.titleLineTwo}</h1>
                 <p>{heroSettings.description}</p>
                 <div className="hero-cta"><button className="btn-primary" onClick={() => scrollTo(heroSettings.primaryTarget || "produk")}>{heroSettings.primaryLabel} <span>→</span></button></div>
-                <div className="trust-badges"><span>♧ &nbsp; {heroSettings.trustOne}</span><span>ϟ &nbsp; {heroSettings.trustTwo}</span><span>♧ &nbsp; {heroSettings.trustThree}</span></div>
+                <div className="trust-badges"><span><BadgeCheckIcon />{heroSettings.trustOne}</span><span>ϟ &nbsp; {heroSettings.trustTwo}</span><span><HeadsetIcon />{heroSettings.trustThree}</span></div>
               </div>
               <div className="category-quick-grid">
                 {[['Office', 'Windows · Office', '▣'], ['Design', 'Adobe · Corel', '◈'], ['Engineering', 'AutoCAD · SketchUp', '✧'], ['Utility', 'IDM · Recovery', '⚿']].map(([name, description, icon]) => <button className="quick-cat-card" key={name} onClick={() => { setCategory(name); scrollTo("produk"); }}><strong>{icon}</strong><span><b>{name}</b><small>{description}</small></span></button>)}
