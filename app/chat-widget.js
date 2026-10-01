@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CHAT_INPUT_LIMIT, chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
@@ -10,6 +10,9 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   const [messages, setMessages] = useState([{ from: "bot", text: "Halo! Saya asisten AI CS Aplikasi.id. Ada yang bisa saya bantu?" }]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const suggestionsId = useId();
+  const launcher = useRef(null);
   const history = useRef([]);
   const inFlight = useRef(null);
   const messageList = useRef(null);
@@ -27,6 +30,7 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   function askFaq(item) {
     if (inFlight.current) return;
     setError("");
+    setShowSuggestions(false);
     remember(item.question, item.answer);
     setMessages((current) => [...current, { from: "user", text: item.question }, { from: "bot", text: item.answer }]);
   }
@@ -39,6 +43,7 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
     inFlight.current = controller;
     const timeout = setTimeout(() => controller.abort(), 75000);
     setPending(true);
+    setShowSuggestions(false);
     setError("");
     setInput("");
     setMessages((current) => [...current, { from: "user", text }]);
@@ -72,12 +77,19 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
     }
   }
 
+  function closeChat() {
+    setOpen(false);
+    requestAnimationFrame(() => launcher.current?.focus());
+  }
+
+  const suggestionLabels = { order: "Cara beli", warranty: "Garansi", payment: "Pembayaran" };
+
   return <div className={`chat-widget${open ? " is-open" : ""}`}>
-    <button className="chat-launcher" type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Tutup chat CS" : "Buka chat CS"}>
-      {open ? "×" : "✦"}<span className="chat-launcher-label">{open ? "Tutup" : "Chat CS"}</span>
+    <button ref={launcher} hidden={open} className="chat-launcher" type="button" onClick={() => setOpen(true)} aria-expanded={open} aria-label="Buka chat CS">
+      ✦<span className="chat-launcher-label">Chat CS</span>
     </button>
-    {open && <section className="chat-panel" aria-label="Chat CS Aplikasi.id">
-      <header className="chat-panel-header"><div><strong>CS Aplikasi.id</strong><small>Asisten AI · Jawaban otomatis & bantuan FAQ</small></div><span className="chat-online-dot" /></header>
+    {open && <section className="chat-panel" aria-label="Chat CS Aplikasi.id" onKeyDown={(event) => { if (event.key === "Escape") closeChat(); }}>
+      <header className="chat-panel-header"><div><strong>CS Aplikasi.id</strong><small>Asisten AI · Siap membantu</small></div><button className="chat-close" type="button" onClick={closeChat} aria-label="Tutup chat CS">×</button></header>
       <div className="chat-messages" ref={messageList} role="log" aria-live="polite" aria-label="Percakapan CS" aria-busy={pending}>
         {messages.map((message, index) => <div className={`chat-message ${message.from}`} key={index}>
           {message.from === "bot" ? <div className="chat-markdown"><Markdown remarkPlugins={[remarkGfm]} skipHtml disallowedElements={["img"]}>{message.text}</Markdown></div> : message.text}
@@ -85,13 +97,15 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
         {pending && <p className="chat-message bot" role="status">Sedang menyiapkan jawaban…</p>}
       </div>
       {error && <p className="chat-error" role="alert">{error}</p>}
-      <div className="chat-quick-title">Pertanyaan populer</div>
-      <div className="chat-quick-actions">{faqItems.slice(0, 6).map((item) => <button type="button" key={item.id} disabled={pending} onClick={() => askFaq(item)}>{item.question}</button>)}</div>
+      {faqItems.length > 0 && <div id={suggestionsId} className="chat-quick-actions" hidden={!showSuggestions} aria-label="Pertanyaan umum">{faqItems.slice(0, 3).map((item) => <button type="button" key={item.id} title={item.question} disabled={pending} onClick={() => askFaq(item)}>{suggestionLabels[item.id] || item.question}</button>)}</div>}
       <form className="chat-composer" onSubmit={sendMessage}>
         <input value={input} maxLength={CHAT_INPUT_LIMIT} onChange={(event) => setInput(event.target.value)} placeholder="Tulis pertanyaanmu..." aria-label="Tulis pesan ke CS" />
         <button type="submit" disabled={pending || !input.trim()} aria-label="Kirim pesan">→</button>
       </form>
-      {whatsapp && <a className="chat-whatsapp" href={whatsapp} target="_blank" rel="noreferrer">Hubungi CS via WhatsApp <span>↗</span></a>}
+      <div className="chat-footer-actions">
+        {faqItems.length > 0 && <button className="chat-suggestions-toggle" type="button" aria-expanded={showSuggestions} aria-controls={suggestionsId} onClick={() => setShowSuggestions((current) => !current)}>Pertanyaan umum <span aria-hidden="true">{showSuggestions ? "−" : "+"}</span></button>}
+        {whatsapp && <a className="chat-whatsapp" href={whatsapp} target="_blank" rel="noreferrer">CS WhatsApp <span aria-hidden="true">↗</span></a>}
+      </div>
     </section>}
   </div>;
 }
