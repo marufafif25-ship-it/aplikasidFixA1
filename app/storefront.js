@@ -3,7 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon } from "./icons";
+import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, DownloadIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 import ChatWidget from "./chat-widget";
 
@@ -165,7 +165,7 @@ export default function Storefront({ initialData }) {
           </div>
         </section>
 
-        <section className="info-section" id="garansi"><div className="container info-grid"><InfoCard icon="ϟ" title="Aktivasi Cepat" text="Pesanan diproses dengan cepat dan panduan instalasi tersedia untuk setiap software." /><InfoCard icon="♢" title="Garansi Selamanya" text="Garansi permanen update dan penggantian link jika ada masalah instalasi." /><InfoCard icon="⇩" title="Direct Google Drive" text="Akses download kencang, aman, dan dilengkapi panduan langkah demi langkah." /></div></section>
+        <section className="info-section" id="garansi"><div className="container info-grid"><InfoCard icon={<LightningIcon />} title="Aktivasi Cepat" text="Pesanan diproses dengan cepat dan panduan instalasi tersedia untuk setiap software." /><InfoCard icon={<BadgeCheckIcon />} title="Garansi 5 Tahun" text="Garansi selama 5 tahun untuk bantuan instalasi dan penggantian link unduhan jika bermasalah." /><InfoCard icon={<DownloadIcon />} title="Direct Google Drive" text="Akses download kencang, aman, dan dilengkapi panduan langkah demi langkah." /></div></section>
         <section className="help-section" id="bantuan"><div className="container"><h2>Butuh bantuan memilih software?</h2><p>Tim kami siap membantu menemukan paket yang sesuai kebutuhan kerja dan perangkat Anda.</p><div className="store-help-actions"><Link className="btn-primary" href="/panduan">Buka Pusat Bantuan →</Link><button className="store-help-contact" onClick={() => setChatOpen(true)}>Hubungi CS ↗</button></div></div></section>
       </main>
 
