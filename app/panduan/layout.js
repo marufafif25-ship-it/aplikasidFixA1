@@ -12,7 +12,7 @@ export default function GuideLayout({ children }) {
           <span><strong>Aplikasi.id</strong><small>LICENSED SOFTWARE</small></span>
         </Link>
         <nav aria-label="Navigasi utama">
-          <Link href="/">Beranda</Link><Link href="/#produk">Produk</Link><Link href="/panduan" aria-current="page">Bantuan</Link><Link href="/#garansi">Garansi</Link>
+          <Link href="/">Beranda</Link><Link href="/#produk">Produk</Link><Link href="/panduan" aria-current="page">Panduan</Link><Link href="/#garansi">Garansi</Link>
         </nav>
         <Link className="guide-account" href="/akun">Akun Saya <span aria-hidden="true">↗</span></Link>
       </div>
