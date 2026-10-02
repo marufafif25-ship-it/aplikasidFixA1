@@ -64,3 +64,9 @@ PGLITE_MODULE=/tmp/aplikasid-db-check/node_modules/@electric-sql/pglite/dist/ind
 ```
 
 Pengujian lokal memakai data buatan, tidak mengakses transaksi produksi. Uji juga dengan email checkout nyata setelah pemetaan link dan deployment selesai.
+
+## Upload gambar produk
+
+Jalankan `supabase/product-images.sql` di SQL Editor setelah `schema.sql`, lalu deploy kode terbaru. Script membuat bucket publik `product-images` dengan batas 5 MB dan izin upload hanya untuk admin/owner. File PNG, JPG, WebP, atau GIF diupload langsung ke Storage menggunakan sesi admin; data produk hanya menyimpan URL publiknya. Tidak menggunakan base64 untuk upload baru.
+
+Di `/adminn`, pilih gambar katalog, tunggu preview dan URL muncul, lalu klik **Simpan Perubahan** atau **Tambah Produk**. Jika upload gagal, gambar sebelumnya tetap digunakan. Gambar lama dalam base64 tetap bisa dibaca; upload ulang untuk menggantinya dengan file Storage. File yang diupload tetapi produknya tidak disimpan tetap berada di Storage; penghapusan produk tidak menghapus file secara otomatis.

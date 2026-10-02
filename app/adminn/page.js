@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import OrderEditor from "./order-editor";
 import DownloadEditor from "./download-editor";
+import { uploadProductImage } from "../../lib/product-image-upload";
 import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
 
 const STORAGE_KEY = "aplikasiid_products";
@@ -72,6 +73,7 @@ export default function AdminPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [heroSettings, setHeroSettings] = useState(defaultHeroSettings);
   const [footerSettings, setFooterSettings] = useState(defaultFooterSettings);
 
@@ -187,12 +189,14 @@ export default function AdminPage() {
   };
 
   const editProduct = (product) => {
+    if (uploading) return;
     setEditingId(product.id);
     setForm({ ...product, specs: product.specs || [] });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const startNew = () => {
+    if (uploading) return;
     setEditingId(null);
     setForm({ ...emptyProduct, id: `app-${Date.now()}` });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -200,6 +204,7 @@ export default function AdminPage() {
 
   const saveProduct = async (event) => {
     event.preventDefault();
+    if (uploading) return;
     const product = {
       ...form,
       id: form.id.trim() || `app-${Date.now()}`,
@@ -216,8 +221,8 @@ export default function AdminPage() {
     const nextProducts = editingId ? productList.map((item) => item.id === editingId ? product : item) : [product, ...productList];
     try {
       await saveRemoteProduct(product);
-    } catch {
-      setNotice("Gagal menyimpan ke Supabase.");
+    } catch (error) {
+      setNotice(error.message || "Gagal menyimpan ke Supabase.");
       return;
     }
     persist(nextProducts, editingId ? "Produk berhasil diperbarui." : "Produk baru berhasil ditambahkan.");
@@ -239,6 +244,7 @@ export default function AdminPage() {
   };
 
   const resetProducts = async () => {
+    if (uploading) return;
     try {
       const latest = await fetchProducts();
       persist(withOrder(latest), "Katalog terbaru dari Supabase sudah dimuat.");
@@ -247,12 +253,22 @@ export default function AdminPage() {
       setPage(1);
     } catch { setNotice("Gagal memuat katalog dari Supabase. Silakan coba lagi."); }
   };
-  const readUpload = (field) => (event) => {
+  const readUpload = (field) => async (event) => {
+    const input = event.target;
     const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => updateField(field, reader.result);
-    reader.readAsDataURL(file);
+    if (!file || uploading) return;
+    setUploading(true);
+    setNotice("Mengupload gambar ke Supabase...");
+    try {
+      const url = await uploadProductImage(file);
+      updateField(field, url);
+      setNotice("Gambar berhasil diupload. Simpan produk untuk menggunakan gambar ini.");
+    } catch (error) {
+      setNotice(error.message || "Upload gambar gagal. Silakan coba lagi.");
+    } finally {
+      input.value = "";
+      setUploading(false);
+    }
   };
 
   if (!authReady) return null;
@@ -313,7 +329,7 @@ export default function AdminPage() {
       </section>
 
       <section className="admin-editor">
-        <div className="admin-section-heading"><div><p className="admin-eyebrow">{editingId ? "EDIT PRODUK" : "TAMBAH PRODUK"}</p><h2>{editingId ? "Perbarui detail produk" : "Buat produk baru"}</h2></div>{editingId && <button className="admin-ghost" type="button" onClick={() => { setEditingId(null); setForm(emptyProduct); }}>Batal edit</button>}</div>
+        <div className="admin-section-heading"><div><p className="admin-eyebrow">{editingId ? "EDIT PRODUK" : "TAMBAH PRODUK"}</p><h2>{editingId ? "Perbarui detail produk" : "Buat produk baru"}</h2></div>{editingId && <button className="admin-ghost" type="button" disabled={uploading} onClick={() => { setEditingId(null); setForm(emptyProduct); }}>Batal edit</button>}</div>
         <form className="admin-form" onSubmit={saveProduct}>
           <label>ID produk<input value={form.id} onChange={(event) => updateField("id", event.target.value)} placeholder="app-produk-baru" required /></label>
           <label>Nama produk<input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Nama software" required /></label>
@@ -326,12 +342,12 @@ export default function AdminPage() {
           <label className="admin-wide">Daftar versi<textarea value={form.versions} onChange={(event) => updateField("versions", event.target.value)} placeholder="2024 - 2025 - 2026" /></label>
           <label className="admin-wide">Spesifikasi <small>Pisahkan dengan koma</small><textarea value={Array.isArray(form.specs) ? form.specs.join(", ") : form.specs} onChange={(event) => updateField("specs", event.target.value)} placeholder="Full Version, Instal Mudah, Garansi" /></label>
           <label>URL tombol beli <small>Contoh https://...</small><input type="url" value={form.buyUrl || ""} onChange={(event) => updateField("buyUrl", event.target.value)} placeholder="https://website-pembayaran.com" /></label>
-          <label>URL gambar logo<input value={form.imageUrl || ""} onChange={(event) => updateField("imageUrl", event.target.value)} placeholder="/assets/logos/app.png" /></label>
-          <label>URL gambar katalog<input value={form.catalogImageUrl || ""} onChange={(event) => updateField("catalogImageUrl", event.target.value)} placeholder="/assets/katalogApp.png" /></label>
-          <label>Upload gambar katalog<input type="file" accept="image/*" onChange={readUpload("catalogImageUrl")} /></label>
+          <label>URL gambar logo<input value={form.imageUrl?.startsWith("data:image/") ? "" : form.imageUrl || ""} onChange={(event) => updateField("imageUrl", event.target.value)} placeholder={form.imageUrl?.startsWith("data:image/") ? "Gambar upload digunakan" : "/assets/logos/app.png"} />{form.imageUrl?.startsWith("data:image/") && <small>Logo menggunakan gambar upload. Isi URL untuk menggantinya.</small>}</label>
+          <label>URL gambar katalog<input disabled={uploading} value={form.catalogImageUrl?.startsWith("data:image/") ? "" : form.catalogImageUrl || ""} onChange={(event) => updateField("catalogImageUrl", event.target.value)} placeholder={form.catalogImageUrl?.startsWith("data:image/") ? "Gambar upload digunakan" : "/assets/katalogApp.png"} /><small>{form.catalogImageUrl?.startsWith("data:image/") ? "Katalog menggunakan gambar upload. Isi URL untuk menggantinya." : "Isi URL gambar atau pilih file di sebelahnya."}</small></label>
+          <label>Upload gambar katalog<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={uploading} onChange={readUpload("catalogImageUrl")} /><small>{uploading ? "Mengupload gambar..." : "PNG, JPG, WebP, GIF · Maksimal 5 MB. Setelah upload, simpan produk."}</small></label>
           <label>Warna logo<input type="color" value={form.color || "#2563eb"} onChange={(event) => updateField("color", event.target.value)} /></label>
           <div className="admin-preview"><span>Preview katalog</span>{form.catalogImageUrl ? <img src={form.catalogImageUrl} alt="Preview katalog" /> : <strong>Belum ada gambar</strong>}</div>
-          <div className="admin-form-actions"><button className="admin-primary" type="submit">{editingId ? "Simpan Perubahan" : "Tambah Produk"}</button><button className="admin-ghost" type="button" onClick={resetProducts}>Muat Ulang dari Supabase</button></div>
+          <div className="admin-form-actions"><button className="admin-primary" type="submit" disabled={uploading}>{uploading ? "Mengupload gambar..." : editingId ? "Simpan Perubahan" : "Tambah Produk"}</button><button className="admin-ghost" type="button" onClick={resetProducts}>Muat Ulang dari Supabase</button></div>
         </form>
       </section>
 
