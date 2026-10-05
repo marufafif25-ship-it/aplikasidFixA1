@@ -6,25 +6,27 @@ FAQ aktif dari Supabase, dan panduan toko sebagai konteks. Riwayat terbatas pada
 
 ## Aktivasi
 
-1. Buat API key di https://openrouter.ai/settings/keys.
+1. Buat API key di [SumoPod](https://ai.sumopod.com) dengan akses ke model
+   `qwen3.7-flash-2026-07-15`.
 2. Tambahkan konfigurasi berikut ke `.env.local` atau environment server hosting:
 
    ```dotenv
-   OPENROUTER_API_KEY=isi_key_anda
-   OPENROUTER_MODEL=openrouter/free
+   QWEN_API_KEY=isi_key_anda
+   QWEN_MODEL=qwen3.7-flash-2026-07-15
+   QWEN_BASE_URL=https://ai.sumopod.com/v1
    ```
 
 3. Pastikan variabel Supabase pada `.env.example` sudah diisi agar konteks toko
    dapat dimuat. Restart `npm run dev`, atau build dan deploy ulang di hosting.
 4. Buka `/?chat=1`, tanyakan kebutuhan software, lalu kirim pertanyaan lanjutan.
 
-API key hanya dibaca di server; jangan gunakan awalan `NEXT_PUBLIC_`.
-Model default adalah [router gratis OpenRouter](https://openrouter.ai/openrouter/free),
-yang memilih dari model gratis yang tersedia. Gaya jawaban dapat berbeda antar model.
-Pastikan `OPENROUTER_MODEL` di hosting diisi `openrouter/free`, karena environment
-hosting mengesampingkan default kode. FAQ tetap tersedia saat AI gagal merespons.
-Model alternatif harus berakhiran `:free`; backend menolak model berbayar.
-Ketersediaan dan kuota tetap mengikuti OpenRouter.
+API key hanya dibaca di server; jangan gunakan awalan `NEXT_PUBLIC_` dan jangan
+commit `.env.local`. Hosting perlu diisi `QWEN_API_KEY` secara terpisah.
+Model dan endpoint di atas digunakan sebagai default jika variabelnya kosong.
+Chatbot hanya memakai Qwen melalui endpoint OpenAI-compatible SumoPod.
+FAQ tetap tersedia saat AI gagal merespons. Ketersediaan, biaya, dan kuota
+mengikuti akun SumoPod. Error `403 key_model_access_denied` menunjukkan key
+belum diizinkan memakai model yang dipilih.
 
 ## Saat AI tidak tersedia
 
@@ -33,12 +35,10 @@ menyediakan pertanyaan populer serta tautan WhatsApp dari pengaturan footer.
 Tombol FAQ tidak memanggil provider AI. Jika tidak ada FAQ yang cocok, pertanyaan
 dikembalikan ke kolom pesan untuk dicoba ulang. Error tidak masuk riwayat AI.
 
-Permintaan AI menonaktifkan reasoning jika model mendukungnya dan meminta
-OpenRouter mengecualikannya dari respons. Backend hanya membaca konten jawaban,
-menghapus blok thinking bertanda, serta menolak respons terpotong atau pola
-analisis yang dikenali agar UI memakai FAQ cadangan. Filter pola ini bukan
+Permintaan AI mengirim `enable_thinking: false`. Backend hanya membaca konten
+jawaban, menghapus blok thinking bertanda, serta menolak respons terpotong atau
+pola analisis yang dikenali agar UI memakai FAQ cadangan. Filter pola ini bukan
 jaminan deteksi semua bentuk analisis dari setiap model.
-Referensi: [kontrol reasoning OpenRouter](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
 
 Backend membatasi pesan menjadi 4.000 karakter dan 19 pesan per permintaan,
 ukuran body 100 KB, serta waktu permintaan provider 60 detik. Pembatas lokal

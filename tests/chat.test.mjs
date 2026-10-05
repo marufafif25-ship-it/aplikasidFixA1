@@ -1,11 +1,45 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createChatHandler, createChatLimiter, composeChatInstruction, parseMessages, generateChatReply, finalChatContent } from "../lib/chat.mjs";
+import { createChatHandler, createChatLimiter, composeChatInstruction, parseMessages, generateChatReply, finalChatContent, chatConfig } from "../lib/chat.mjs";
 import { chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
 
 const messages = [{ role: "user", content: "Ada software desain untuk Windows?" }];
 const request = (body = { messages }, headers = {}) => new Request("https://example.com/api/chat", { method: "POST", headers, body: JSON.stringify(body) });
 const context = { store: { products: [{ title: "Desain", price: 50000 }], faq: [] }, guides: [] };
+test("Qwen configuration selects SumoPod credentials and the requested model", () => {
+  assert.deepEqual(chatConfig({ QWEN_API_KEY: "test", QWEN_BASE_URL: "https://ai.sumopod.com/v1" }), {
+    apiKey: "test", model: "qwen3.7-flash-2026-07-15", baseUrl: "https://ai.sumopod.com/v1",
+  });
+  assert.deepEqual(chatConfig({}), { apiKey: undefined, model: "qwen3.7-flash-2026-07-15", baseUrl: "https://ai.sumopod.com/v1" });
+});
+
+test("Qwen sends authenticated chat to SumoPod with thinking disabled", async () => {
+  const result = await generateChatReply({ baseUrl: "https://ai.sumopod.com/v1/", apiKey: " test ", messages, instruction: "CS", fetchImpl: async (url, options) => {
+    assert.equal(url, "https://ai.sumopod.com/v1/chat/completions");
+    assert.equal(options.headers.Authorization, "Bearer test");
+    const body = JSON.parse(options.body);
+    assert.equal(body.model, "qwen3.7-flash-2026-07-15");
+    assert.equal(body.enable_thinking, false);
+    assert.equal(body.reasoning, undefined);
+    assert.deepEqual(body.messages, [{ role: "system", content: "CS" }, ...messages]);
+    return Response.json({ choices: [{ message: { content: "Halo kak!" }, finish_reason: "stop" }] });
+  } });
+  assert.equal(result, "Halo kak!");
+});
+
+test("invalid Qwen configuration never sends credentials", async () => {
+  for (const baseUrl of ["", "invalid", "http://ai.sumopod.com/v1", "https://user:pass@ai.sumopod.com/v1", "https://ai.sumopod.com/v1?key=x"]) {
+    await assert.rejects(generateChatReply({ baseUrl, apiKey: "test", messages, instruction: "", fetchImpl: () => assert.fail("must not call provider") }), { status: 503 });
+  }
+});
+
+test("Qwen rate limits use neutral errors without leaking provider details", async () => {
+  const post = createChatHandler({ loadContext: async () => context, getConfig: () => ({ apiKey: "test", baseUrl: "https://ai.sumopod.com/v1" }), fetchImpl: async () => Response.json({ error: { message: "SECRET" } }, { status: 429 }) });
+  const response = await post(request());
+  assert.equal(response.status, 429);
+  const text = await response.text();
+  assert.doesNotMatch(text, /gratis|SECRET/);
+});
 const handler = (options = {}) => createChatHandler({
   loadContext: async () => context,
   getConfig: () => ({ apiKey: "test-key" }),
@@ -13,13 +47,13 @@ const handler = (options = {}) => createChatHandler({
   ...options,
 });
 
-test("chat route sends public context and history to the free router", async () => {
+test("chat route sends public context and history to Qwen through SumoPod", async () => {
   const response = await handler({ fetchImpl: async (url, options) => {
-    assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
+    assert.equal(url, "https://ai.sumopod.com/v1/chat/completions");
     assert.equal(options.headers.Authorization, "Bearer test-key");
     const body = JSON.parse(options.body);
-    assert.equal(body.model, "openrouter/free");
-    assert.deepEqual(body.reasoning, { enabled: false, exclude: true });
+    assert.equal(body.model, "qwen3.7-flash-2026-07-15");
+    assert.equal(body.enable_thinking, false);
     assert.equal(body.messages[0].role, "system");
     assert.match(body.messages[0].content, /Desain/);
     assert.deepEqual(body.messages.slice(1), messages);
@@ -46,10 +80,10 @@ test("cross-site requests are rejected before context loading", async () => {
   }
 });
 
-test("missing credentials and paid models cannot call provider", async () => {
+test("missing credentials and non-Qwen models cannot call provider", async () => {
   const post = handler({ getConfig: () => ({}), loadContext: () => assert.fail("must not load context") });
   assert.equal((await post(request())).status, 503);
-  await assert.rejects(generateChatReply({ messages, instruction: "", apiKey: "test", model: "openrouter/auto", fetchImpl: () => assert.fail("must not call provider") }), { status: 503 });
+  await assert.rejects(generateChatReply({ messages, instruction: "", apiKey: "test", model: "other-model", fetchImpl: () => assert.fail("must not call provider") }), { status: 503 });
 });
 
 test("provider failures return actionable errors without leaking details", async () => {
@@ -59,7 +93,7 @@ test("provider failures return actionable errors without leaking details", async
     assert.doesNotMatch(await response.text(), /secret/);
   }
   const limited = await handler({ fetchImpl: async () => Response.json({ error: { message: "daily limit" } }, { status: 429, headers: { "retry-after": "30" } }) })(request());
-  assert.match((await limited.json()).error, /harian.*30 detik/);
+  assert.match((await limited.json()).error, /Batas permintaan.*30 detik/);
 });
 
 test("empty responses, timeout, embedded errors and context failures are handled", async () => {
