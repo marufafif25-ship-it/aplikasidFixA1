@@ -65,7 +65,7 @@
 .chat-panel{display:flex;flex-direction:column;width:min(380px,calc(100vw - 28px));height:min(560px,calc(100dvh - 44px));overflow:hidden;border:1px solid #dce5f2;border-radius:18px;background:#fff;box-shadow:0 20px 55px rgba(15,38,75,.2);animation:chat-in .2s ease-out}
 .chat-panel-header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(135deg,#0b1934,#17377e);color:#fff}
 .chat-panel-header strong,.chat-panel-header small{display:block}.chat-panel-header strong{font:700 16px Outfit}.chat-panel-header small{margin-top:3px;color:#bfd5ff;font-size:10px}
-.chat-close{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border-radius:10px;background:#ffffff14;color:#fff;font-size:25px;line-height:1}.chat-close:hover{background:#ffffff26}
+.chat-close{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;padding:0;border:0;border-radius:10px;background:#ffffff14;color:#fff}.chat-close svg{display:block;width:18px;height:18px;stroke:currentColor;stroke-width:2;stroke-linecap:round}.chat-close:hover{background:#ffffff26}
 .chat-messages{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overscroll-behavior:contain;padding:16px;background:#f7faff}
 .chat-message{flex-shrink:0;max-width:84%;margin:0;padding:10px 12px;border-radius:12px;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
 .chat-message.bot{max-width:94%;min-width:0;align-self:flex-start;border:1px solid #e0e9f5;background:#fff;color:#526078;border-top-left-radius:4px}.chat-message.user{align-self:flex-end;background:#2563eb;color:#fff;border-top-right-radius:4px}

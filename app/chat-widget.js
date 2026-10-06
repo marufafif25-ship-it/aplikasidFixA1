@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CHAT_INPUT_LIMIT, chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
+import { isOutsideChat } from "../lib/chat-widget.mjs";
 
 export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   const [input, setInput] = useState("");
@@ -13,11 +14,20 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const suggestionsId = useId();
   const launcher = useRef(null);
+  const widget = useRef(null);
   const history = useRef([]);
   const inFlight = useRef(null);
   const messageList = useRef(null);
 
   useEffect(() => () => inFlight.current?.abort(), []);
+  useEffect(() => {
+    if (!open) return;
+    const closeOnOutsideClick = (event) => {
+      if (isOutsideChat(widget.current, event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [open, setOpen]);
   useEffect(() => {
     const list = messageList.current;
     if (list) list.scrollTop = list.scrollHeight;
@@ -84,12 +94,12 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
 
   const suggestionLabels = { order: "Cara beli", warranty: "Garansi", payment: "Pembayaran" };
 
-  return <div className={`chat-widget${open ? " is-open" : ""}`}>
+  return <div ref={widget} className={`chat-widget${open ? " is-open" : ""}`}>
     <button ref={launcher} hidden={open} className="chat-launcher" type="button" onClick={() => setOpen(true)} aria-expanded={open} aria-label="Buka chat CS">
       ✦<span className="chat-launcher-label">Chat CS</span>
     </button>
     {open && <section className="chat-panel" aria-label="Chat CS Aplikasi.id" onKeyDown={(event) => { if (event.key === "Escape") closeChat(); }}>
-      <header className="chat-panel-header"><div><strong>CS Aplikasi.id</strong><small>Asisten AI · Siap membantu</small></div><button className="chat-close" type="button" onClick={closeChat} aria-label="Tutup chat CS">×</button></header>
+      <header className="chat-panel-header"><div><strong>CS Aplikasi.id</strong><small>Asisten AI · Siap membantu</small></div><button className="chat-close" type="button" onClick={closeChat} aria-label="Tutup chat CS"><svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18" /></svg></button></header>
       <div className="chat-messages" ref={messageList} role="log" aria-live="polite" aria-label="Percakapan CS" aria-busy={pending}>
         {messages.map((message, index) => <div className={`chat-message ${message.from}`} key={index}>
           {message.from === "bot" ? <div className="chat-markdown"><Markdown remarkPlugins={[remarkGfm]} skipHtml disallowedElements={["img"]}>{message.text}</Markdown></div> : message.text}
