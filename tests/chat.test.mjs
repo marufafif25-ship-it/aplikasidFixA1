@@ -96,6 +96,16 @@ test("provider failures return actionable errors without leaking details", async
   assert.match((await limited.json()).error, /Batas permintaan.*30 detik/);
 });
 
+test("assistant can answer general questions while grounding store-specific facts", () => {
+  const instruction = composeChatInstruction({ products: [], faq: [] });
+  assert.match(instruction, /jawab pertanyaan umum, istilah teknologi, penggunaan software, dan troubleshooting dasar/);
+  assert.match(instruction, /typo/);
+  assert.match(instruction, /jangan otomatis mengarahkan ke CS/);
+  assert.match(instruction, /gunakan hanya referensi toko yang diberikan/);
+  assert.match(instruction, /medis, hukum, atau keuangan/);
+  assert.match(instruction, /tindakan ilegal/);
+});
+
 test("empty responses, timeout, embedded errors and context failures are handled", async () => {
   for (const [options, status] of [
     [{ fetchImpl: async () => Response.json({ choices: [] }) }, 502],
