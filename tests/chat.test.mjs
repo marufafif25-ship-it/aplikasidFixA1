@@ -106,6 +106,24 @@ test("assistant can answer general questions while grounding store-specific fact
   assert.match(instruction, /tindakan ilegal/);
 });
 
+test("assistant only directs customers to Akun Saya when that feature is enabled", () => {
+  const hidden = composeChatInstruction({ products: [], faq: [], homepage: { accountEnabled: false } });
+  assert.match(hidden, /Fitur Akun Saya sedang disembunyikan/);
+  assert.doesNotMatch(hidden, /Pelanggan dapat memeriksa pembelian melalui \/akun/);
+
+  const visible = composeChatInstruction({ products: [], faq: [], homepage: { accountEnabled: true } });
+  assert.match(visible, /Pelanggan dapat memeriksa pembelian melalui \/akun/);
+  assert.doesNotMatch(visible, /Fitur Akun Saya sedang disembunyikan/);
+});
+
+test("purchase guidance follows checkout instructions and recommends QRIS for the lowest admin fee", () => {
+  const instruction = composeChatInstruction({ products: [], faq: [] });
+  assert.match(instruction, /memilih\/mengganti model produk/);
+  assert.match(instruction, /Ikuti instruksi pembayaran pada halaman checkout/);
+  assert.match(instruction, /sarankan QRIS karena biaya adminnya paling murah/);
+  assert.match(instruction, /Jangan mengarang nominal biaya/);
+});
+
 test("empty responses, timeout, embedded errors and context failures are handled", async () => {
   for (const [options, status] of [
     [{ fetchImpl: async () => Response.json({ choices: [] }) }, 502],

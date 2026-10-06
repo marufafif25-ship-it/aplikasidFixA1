@@ -18,7 +18,8 @@ const defaultHeroSettings = {
   secondaryTarget: "bantuan",
   trustOne: "Full Version",
   trustTwo: "Aktivasi Cepat",
-  trustThree: "Support Pelanggan"
+  trustThree: "Support Pelanggan",
+  accountEnabled: false
 };
 const defaultFooterSettings = {
   brand: "Aplikasi.id",
@@ -75,12 +76,17 @@ export default function AdminPage() {
   const [notice, setNotice] = useState("");
   const [uploading, setUploading] = useState(false);
   const [heroSettings, setHeroSettings] = useState(defaultHeroSettings);
+  const [accountEnabled, setAccountEnabled] = useState(false);
   const [footerSettings, setFooterSettings] = useState(defaultFooterSettings);
 
   useEffect(() => {
     getAdminUser().then(setAdminUser).catch((error) => setNotice(error.message)).finally(() => setAuthReady(true));
     const savedHero = window.localStorage.getItem("aplikasiid_hero");
-    if (savedHero) setHeroSettings({ ...defaultHeroSettings, ...JSON.parse(savedHero) });
+    if (savedHero) {
+      const nextHero = { ...defaultHeroSettings, ...JSON.parse(savedHero) };
+      setHeroSettings(nextHero);
+      setAccountEnabled(nextHero.accountEnabled === true);
+    }
     const savedFooter = window.localStorage.getItem("aplikasiid_footer");
     if (savedFooter) setFooterSettings(normalizeFooterSettings(JSON.parse(savedFooter)));
     fetchHomepageSettings()
@@ -88,6 +94,7 @@ export default function AdminPage() {
         if (settings && !Array.isArray(settings)) {
           const nextHero = { ...defaultHeroSettings, ...settings };
           setHeroSettings(nextHero);
+          setAccountEnabled(nextHero.accountEnabled === true);
           window.localStorage.setItem("aplikasiid_hero", JSON.stringify(nextHero));
         }
       })
@@ -164,13 +171,30 @@ export default function AdminPage() {
 
   const saveHero = async (event) => {
     event.preventDefault();
+    const nextHeroSettings = { ...heroSettings, accountEnabled };
     try {
-      await saveHomepageSettings(heroSettings);
-      window.localStorage.setItem("aplikasiid_hero", JSON.stringify(heroSettings));
+      await saveHomepageSettings(nextHeroSettings);
+      setHeroSettings(nextHeroSettings);
+      window.localStorage.setItem("aplikasiid_hero", JSON.stringify(nextHeroSettings));
       setNotice("Pengaturan homepage berhasil disimpan.");
     } catch {
-      window.localStorage.setItem("aplikasiid_hero", JSON.stringify(heroSettings));
+      window.localStorage.setItem("aplikasiid_hero", JSON.stringify(nextHeroSettings));
       setNotice("Tersimpan di browser saja. Gagal menyimpan ke Supabase.");
+    }
+    window.setTimeout(() => setNotice(""), 3000);
+  };
+
+  const saveAccountFeature = async (event) => {
+    event.preventDefault();
+    try {
+      const savedSettings = await fetchHomepageSettings();
+      const nextSettings = { ...defaultHeroSettings, ...savedSettings, accountEnabled };
+      await saveHomepageSettings(nextSettings);
+      setHeroSettings((current) => ({ ...current, accountEnabled }));
+      window.localStorage.setItem("aplikasiid_hero", JSON.stringify(nextSettings));
+      setNotice(accountEnabled ? "Fitur Akun Saya berhasil dimunculkan." : "Fitur Akun Saya berhasil disembunyikan.");
+    } catch {
+      setNotice("Gagal menyimpan pengaturan Akun Saya. Periksa koneksi lalu coba lagi.");
     }
     window.setTimeout(() => setNotice(""), 3000);
   };
@@ -312,6 +336,15 @@ export default function AdminPage() {
           <label>Trust badge 3<input value={heroSettings.trustThree} onChange={(event) => updateHero("trustThree", event.target.value)} /></label>
           <div className="admin-hero-mini-preview"><span>Preview</span><strong>{heroSettings.title}</strong><b>{heroSettings.titleLineTwo}</b><small>{heroSettings.description}</small></div>
           <div className="admin-form-actions"><button className="admin-primary" type="submit">Simpan Hero Homepage</button><button className="admin-ghost" type="button" onClick={() => setHeroSettings(defaultHeroSettings)}>Kembalikan Default</button></div>
+        </form>
+      </section>
+
+      <section className="admin-editor">
+        <div className="admin-section-heading"><div><p className="admin-eyebrow">FITUR TOKO</p><h2>Visibilitas Akun Saya</h2></div><span className="admin-editor-note">Aktifkan lagi kapan saja dari sini</span></div>
+        <form className="admin-form" onSubmit={saveAccountFeature}>
+          <label className="admin-wide admin-feature-toggle" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}><input type="checkbox" style={{ width: "auto", margin: 0 }} checked={accountEnabled} onChange={(event) => setAccountEnabled(event.target.checked)} /><span>Tampilkan fitur Akun Saya di toko dan pusat bantuan</span></label>
+          <p className="admin-wide admin-feature-help">Saat dimatikan, tautan Akun Saya disembunyikan dan halaman akun mengarahkan pengunjung kembali ke toko.</p>
+          <div className="admin-form-actions"><button className="admin-primary" type="submit">Simpan Pengaturan Fitur</button></div>
         </form>
       </section>
 

@@ -28,6 +28,15 @@ FAQ tetap tersedia saat AI gagal merespons. Ketersediaan, biaya, dan kuota
 mengikuti akun SumoPod. Error `403 key_model_access_denied` menunjukkan key
 belum diizinkan memakai model yang dipilih.
 
+Untuk pertanyaan pembelian atau memilih/mengganti model produk, chatbot
+mengarahkan pelanggan ke katalog dan halaman checkout. Ikuti instruksi di
+checkout; QRIS disarankan karena biaya adminnya paling murah.
+
+Fitur **Akun Saya** dapat dinyalakan atau disembunyikan dari dashboard, pada
+bagian **Visibilitas Akun Saya**. Saat disembunyikan, tautan tidak ditampilkan,
+halaman `/akun` kembali ke beranda, dan chatbot mengarahkan pertanyaan status
+pembelian ke CS WhatsApp.
+
 ## Saat AI tidak tersedia
 
 UI menampilkan pesan kegagalan, mencari jawaban FAQ yang cocok, dan tetap

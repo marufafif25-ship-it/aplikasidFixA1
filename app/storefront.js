@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, DownloadIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
+import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
 import ChatWidget from "./chat-widget";
 
 const defaultHeroSettings = {
@@ -52,6 +53,7 @@ export default function Storefront({ initialData }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [notice, setNotice] = useState("");
   const heroSettings = { ...defaultHeroSettings, ...initialData.homepage };
+  const accountEnabled = isAccountFeatureEnabled(initialData.homepage);
   const footerSettings = normalizeFooterSettings(initialData.footer);
   const [chatOpen, setChatOpen] = useState(false);
   useEffect(() => {
@@ -114,7 +116,7 @@ export default function Storefront({ initialData }) {
             <button className="nav-link" onClick={() => scrollTo("garansi")}>Garansi</button>
           </nav>
           <div className="nav-actions">
-            <a className="customer-account-link" href="/akun">Akun Saya</a>
+            {accountEnabled && <a className="customer-account-link" href="/akun">Akun Saya</a>}
             <button type="button" className="action-btn" onClick={() => { scrollTo("produk"); searchRef.current?.focus({ preventScroll: true }); }} aria-label="Cari produk"><SearchIcon /></button>
           </div>
         </div>
