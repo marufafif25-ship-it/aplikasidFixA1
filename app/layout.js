@@ -6,8 +6,8 @@ import { META_PIXEL_ID } from "../lib/meta-pixel.mjs";
 const GA_MEASUREMENT_ID = "G-RDXXT1B7K2";
 
 export const metadata = {
-  title: "Aplikasi.id - Software Original untuk Kerja & Bisnis",
-  description: "Toko software terpercaya untuk kebutuhan kerja, desain, editing, dan bisnis.",
+  title: "Aplikasid | Software untuk Kuliah, Kerja & Kebutuhan Digital",
+  description: "Temukan software untuk kuliah, penelitian, desain, dan kerja di Aplikasid. Cek pilihan produk, harga, serta panduan instalasinya.",
   icons: {
     icon: [{ url: "/untukFaviconfix.png", type: "image/png", sizes: "500x500" }],
     apple: "/untukFaviconfix.png"

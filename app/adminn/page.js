@@ -9,9 +9,9 @@ import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFoot
 const STORAGE_KEY = "aplikasiid_products";
 const PAGE_SIZE = 15;
 const defaultHeroSettings = {
-  title: "Software Original",
-  titleLineTwo: "untuk Tugas & Kerja",
-  description: "Solusi software terpercaya untuk kebutuhan kerja, desain, editing, dan bisnis dengan proses aktivasi cepat serta bantuan pelanggan.",
+  title: "Kebutuhan Software",
+  titleLineTwo: "untuk Kuliah hingga Kerja",
+  description: "Temukan pilihan software untuk mengerjakan tugas, mengolah data penelitian, membuat desain, dan mendukung pekerjaan sehari-hari.",
   primaryLabel: "Mulai Belanja",
   primaryTarget: "produk",
   secondaryLabel: "Cek Pesanan",

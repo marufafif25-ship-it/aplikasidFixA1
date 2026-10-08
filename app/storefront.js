@@ -9,9 +9,9 @@ import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
 import ChatWidget from "./chat-widget";
 
 const defaultHeroSettings = {
-  title: "Software Original",
-  titleLineTwo: "untuk Tugas & Kerja",
-  description: "Solusi software terpercaya untuk kebutuhan kerja, desain, editing, dan bisnis dengan proses aktivasi cepat serta bantuan pelanggan.",
+  title: "Kebutuhan Software",
+  titleLineTwo: "untuk Kuliah hingga Kerja",
+  description: "Temukan pilihan software untuk mengerjakan tugas, mengolah data penelitian, membuat desain, dan mendukung pekerjaan sehari-hari.",
   primaryLabel: "Mulai Belanja",
   primaryTarget: "produk",
   secondaryLabel: "Cek Pesanan",
