@@ -148,9 +148,10 @@ function svgAt(seconds) {
 
   const elapsed = seconds / duration;
   const progress = Math.round(1080 * elapsed);
+  const destinationTag = `<g>${rect(606, 72, 402, 112, "#ffd84e", 30)}${text("KUNJUNGI", 642, 113, 15, "#10233f", 800, 'letter-spacing="2"')}${text("aplikasid.com", 642, 155, 31, "#10233f", 800)}</g>`;
   const footer = `<rect x="0" y="1909" width="1080" height="11" fill="#ffffff35"/><rect x="0" y="1909" width="${progress}" height="11" fill="#ffd84e"/>`;
   const definitions = `<defs><filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#10233f" flood-opacity=".12"/></filter></defs>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${definitions}${bg}${content}${footer}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${definitions}${bg}${content}${destinationTag}${footer}</svg>`;
 }
 
 for (let frame = 0; frame < frameCount; frame++) {
