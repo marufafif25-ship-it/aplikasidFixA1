@@ -35,6 +35,10 @@ const emptyProduct = {
   category: "Design",
   os: "Win & Mac",
   versions: "",
+  description: "",
+  seoTitle: "",
+  seoDescription: "",
+  compatibility: "",
   price: 0,
   originalPrice: 0,
   rating: 5,
@@ -238,6 +242,10 @@ export default function AdminPage() {
       rating: Number(form.rating) || 0,
       sales: Number(form.sales) || 0,
       versions: form.versions.trim(),
+      description: (form.description || "").trim(),
+      seoTitle: (form.seoTitle || "").trim(),
+      seoDescription: (form.seoDescription || "").trim(),
+      compatibility: (form.compatibility || "").trim(),
       specs: Array.isArray(form.specs) ? form.specs : form.specs.split(",").map((item) => item.trim()).filter(Boolean),
       imageUrl: form.imageUrl || form.catalogImageUrl || "/assets/logos/aplikasid.png"
     };
@@ -364,10 +372,14 @@ export default function AdminPage() {
       <section className="admin-editor">
         <div className="admin-section-heading"><div><p className="admin-eyebrow">{editingId ? "EDIT PRODUK" : "TAMBAH PRODUK"}</p><h2>{editingId ? "Perbarui detail produk" : "Buat produk baru"}</h2></div>{editingId && <button className="admin-ghost" type="button" disabled={uploading} onClick={() => { setEditingId(null); setForm(emptyProduct); }}>Batal edit</button>}</div>
         <form className="admin-form" onSubmit={saveProduct}>
-          <label>ID produk<input value={form.id} onChange={(event) => updateField("id", event.target.value)} placeholder="app-produk-baru" required /></label>
+          <label>ID produk<input value={form.id} onChange={(event) => updateField("id", event.target.value)} placeholder="app-produk-baru" readOnly={Boolean(editingId)} required />{editingId && <small>ID produk membentuk URL halaman dan tidak dapat diubah setelah dibuat.</small>}</label>
           <label>Nama produk<input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Nama software" required /></label>
           <label>Kategori<select value={form.category} onChange={(event) => updateField("category", event.target.value)}><option>Design</option><option>Engineering</option><option>Video</option><option>Office</option><option>Utility</option></select></label>
           <label>Sistem operasi<input value={form.os} onChange={(event) => updateField("os", event.target.value)} placeholder="Win & Mac" /></label>
+          <label className="admin-wide">Deskripsi unik produk<textarea value={form.description || ""} onChange={(event) => updateField("description", event.target.value)} placeholder="Jelaskan kegunaan produk ini, siapa yang terbantu, dan hal khusus yang perlu diketahui sebelum membeli." /></label>
+          <label className="admin-wide">Kompatibilitas &amp; persyaratan<textarea value={form.compatibility || ""} onChange={(event) => updateField("compatibility", event.target.value)} placeholder="Tulis versi Windows/macOS, kebutuhan perangkat, atau batasan versi yang sudah diverifikasi." /></label>
+          <label>Judul SEO opsional<input value={form.seoTitle || ""} onChange={(event) => updateField("seoTitle", event.target.value)} placeholder="Otomatis memakai nama produk" /></label>
+          <label className="admin-wide">Deskripsi SEO opsional<textarea value={form.seoDescription || ""} onChange={(event) => updateField("seoDescription", event.target.value)} placeholder="Ringkasan unik untuk hasil pencarian (sekitar 150 karakter)." /></label>
           <label>Harga jual<input type="number" min="0" value={form.price} onChange={(event) => updateField("price", event.target.value)} /></label>
           <label>Harga coret<input type="number" min="0" value={form.originalPrice} onChange={(event) => updateField("originalPrice", event.target.value)} /></label>
           <label>Rating<input type="number" min="0" max="5" step="0.1" value={form.rating} onChange={(event) => updateField("rating", event.target.value)} /></label>

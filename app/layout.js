@@ -1,13 +1,30 @@
 import "./globals.css";
+import "./catalog-pages.css";
 import Script from "next/script";
 import MetaPixelPageViews from "./meta-pixel-page-views";
 import { META_PIXEL_ID } from "../lib/meta-pixel.mjs";
+import { createWebsiteStructuredData, serializeJsonLd, SITE_URL } from "../lib/seo.mjs";
 
 const GA_MEASUREMENT_ID = "G-RDXXT1B7K2";
 
 export const metadata = {
-  title: "Aplikasid | Software untuk Kuliah, Kerja & Kebutuhan Digital",
-  description: "Temukan software untuk kuliah, penelitian, desain, dan kerja di Aplikasid. Cek pilihan produk, harga, serta panduan instalasinya.",
+  metadataBase: new URL(SITE_URL),
+  title: "Software untuk Kuliah, Riset & Kerja | Aplikasi.id",
+  description: "Temukan software untuk skripsi, riset, desain, dan produktivitas kerja. Cek pilihan produk, versi, harga, serta panduan instalasi di Aplikasi.id.",
+  applicationName: "Aplikasi.id",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 }
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Aplikasi.id",
+    locale: "id_ID",
+    title: "Software untuk Kuliah, Riset & Kerja | Aplikasi.id",
+    description: "Temukan software untuk skripsi, riset, desain, dan produktivitas kerja. Cek pilihan produk, versi, harga, serta panduan instalasi di Aplikasi.id."
+  },
+  twitter: { card: "summary_large_image" },
   icons: {
     icon: [{ url: "/untukFaviconfix.png", type: "image/png", sizes: "500x500" }],
     apple: "/untukFaviconfix.png"
@@ -18,6 +35,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="id">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(createWebsiteStructuredData(SITE_URL)) }}
+        />
         {children}
         <MetaPixelPageViews />
         <noscript>

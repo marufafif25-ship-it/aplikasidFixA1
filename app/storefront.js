@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, DownloadIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
+import { productCategories, getCategoryPath, getProductPath } from "../lib/catalog-seo.mjs";
 import ChatWidget from "./chat-widget";
 
 const defaultHeroSettings = {
@@ -112,6 +113,7 @@ export default function Storefront({ initialData }) {
           <nav className="nav-menu" aria-label="Navigasi utama">
             <button className="nav-link active" onClick={() => scrollTo("home")}>Beranda</button>
             <button className="nav-link" onClick={() => scrollTo("produk")}>Produk</button>
+            <Link className="nav-link" style={{ textDecoration: "none" }} href="/kategori">Kategori</Link>
             <Link className="nav-link" style={{ textDecoration: "none" }} href="/panduan">Panduan</Link>
             <button className="nav-link" onClick={() => scrollTo("garansi")}>Garansi</button>
           </nav>
@@ -139,6 +141,10 @@ export default function Storefront({ initialData }) {
             </div>
           </div>
         </section>
+
+        <nav className="container category-link-strip" aria-label="Halaman kategori software">
+          <span>Jelajahi:</span>{productCategories.map((item) => <Link key={item.slug} href={getCategoryPath(item)}>{item.label}</Link>)}
+        </nav>
 
         <section className="toolbar-section" id="produk">
           <div className="container toolbar-card">
@@ -188,7 +194,7 @@ function CatalogImage(props) {
 
 function ProductCard({ product, onDetail, onBuy }) {
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-  return <article className="product-card"><div className={`card-artwork${product.catalogImageUrl ? " card-artwork-catalog" : ""}`}>{product.catalogImageUrl ? <CatalogImage className="card-catalog-image" src={product.catalogImageUrl} alt={`Katalog ${product.title}`} fill sizes="(max-width: 900px) 50vw, (max-width: 1100px) 25vw, 250px" /> : <><span className="thumbnail-watermark">PERMANEN! · Garansi</span><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><strong>{product.title.split("(")[0]}</strong><small>{product.versions.slice(0, 35)}...</small><span className="drive-badge-pill">Drive Direct</span></>}</div><div className="card-body"><div className="card-specs-pills">{product.specs.slice(0, 2).map((spec) => <span key={spec}>{spec}</span>)}</div><h3>{product.title}</h3><div className="product-meta"><span>★ {product.rating}</span><i>·</i><span>{product.sales} terjual</span></div><div className="pricing-wrapper"><del>{formatRp(product.originalPrice)}</del><b>{formatRp(product.price)}</b><em>-{discount}%</em></div><button className="btn-card-detail" onClick={() => onDetail(product)}>Lihat Detail →</button><button className="btn-card-buy" onClick={() => onBuy(product)}>Beli Sekarang</button></div></article>;
+  return <article className="product-card"><div className={`card-artwork${product.catalogImageUrl ? " card-artwork-catalog" : ""}`}>{product.catalogImageUrl ? <CatalogImage className="card-catalog-image" src={product.catalogImageUrl} alt={`Katalog ${product.title}`} fill sizes="(max-width: 900px) 50vw, (max-width: 1100px) 25vw, 250px" /> : <><span className="thumbnail-watermark">PERMANEN! · Garansi</span><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><strong>{product.title.split("(")[0]}</strong><small>{product.versions.slice(0, 35)}...</small><span className="drive-badge-pill">Drive Direct</span></>}</div><div className="card-body"><div className="card-specs-pills">{product.specs.slice(0, 2).map((spec) => <span key={spec}>{spec}</span>)}</div><h3><Link href={getProductPath(product)}>{product.title}</Link></h3><div className="product-meta"><span>★ {product.rating}</span><i>·</i><span>{product.sales} terjual</span></div><div className="pricing-wrapper"><del>{formatRp(product.originalPrice)}</del><b>{formatRp(product.price)}</b><em>-{discount}%</em></div><button className="btn-card-detail" onClick={() => onDetail(product)}>Lihat Detail →</button><button className="btn-card-buy" onClick={() => onBuy(product)}>Beli Sekarang</button></div></article>;
 }
 
 function ProductModal({ product, onClose, onBuy }) {
