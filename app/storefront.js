@@ -6,7 +6,7 @@ import Link from "next/link";
 import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, DownloadIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
-import { productCategories, getCategoryPath, getProductPath } from "../lib/catalog-seo.mjs";
+import { productCategories, getProductPath } from "../lib/catalog-seo.mjs";
 import ChatWidget from "./chat-widget";
 
 const defaultHeroSettings = {
@@ -163,10 +163,6 @@ export default function Storefront({ initialData }) {
             </div>
           </div>
         </section>
-
-        <nav className="container category-link-strip" aria-label="Halaman kategori produk">
-          <span>Jelajahi:</span>{productCategories.map((item) => <Link key={item.slug} href={getCategoryPath(item)}>{item.label}</Link>)}
-        </nav>
 
         <section className="toolbar-section" id="produk">
           <div className="container toolbar-card">
