@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import OrderEditor from "./order-editor";
 import DownloadEditor from "./download-editor";
 import { uploadProductImage } from "../../lib/product-image-upload";
+import { scrollAdminEditorIntoView } from "../../lib/admin-scroll.mjs";
 import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
 
 const STORAGE_KEY = "aplikasiid_products";
@@ -82,6 +83,7 @@ export default function AdminPage() {
   const [heroSettings, setHeroSettings] = useState(defaultHeroSettings);
   const [accountEnabled, setAccountEnabled] = useState(false);
   const [footerSettings, setFooterSettings] = useState(defaultFooterSettings);
+  const productEditorRef = useRef(null);
 
   useEffect(() => {
     getAdminUser().then(setAdminUser).catch((error) => setNotice(error.message)).finally(() => setAuthReady(true));
@@ -220,7 +222,9 @@ export default function AdminPage() {
     if (uploading) return;
     setEditingId(product.id);
     setForm({ ...product, specs: product.specs || [] });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollAdminEditorIntoView(productEditorRef.current, {
+      prefersReducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    });
   };
 
   const startNew = () => {
@@ -369,7 +373,7 @@ export default function AdminPage() {
         </form>
       </section>
 
-      <section className="admin-editor">
+      <section className="admin-editor" ref={productEditorRef}>
         <div className="admin-section-heading"><div><p className="admin-eyebrow">{editingId ? "EDIT PRODUK" : "TAMBAH PRODUK"}</p><h2>{editingId ? "Perbarui detail produk" : "Buat produk baru"}</h2></div>{editingId && <button className="admin-ghost" type="button" disabled={uploading} onClick={() => { setEditingId(null); setForm(emptyProduct); }}>Batal edit</button>}</div>
         <form className="admin-form" onSubmit={saveProduct}>
           <label>ID produk<input value={form.id} onChange={(event) => updateField("id", event.target.value)} placeholder="app-produk-baru" readOnly={Boolean(editingId)} required />{editingId && <small>ID produk membentuk URL halaman dan tidak dapat diubah setelah dibuat.</small>}</label>
