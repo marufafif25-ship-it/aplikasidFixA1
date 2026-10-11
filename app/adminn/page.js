@@ -5,6 +5,8 @@ import OrderEditor from "./order-editor";
 import DownloadEditor from "./download-editor";
 import { uploadProductImage } from "../../lib/product-image-upload";
 import { scrollAdminEditorIntoView } from "../../lib/admin-scroll.mjs";
+import { deleteAdminBlogPost, fetchAdminBlogPosts, saveAdminBlogPost } from "../../lib/blog-api";
+import { slugifyBlogTitle } from "../../lib/blog.mjs";
 import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
 
 const STORAGE_KEY = "aplikasiid_products";
@@ -51,6 +53,18 @@ const emptyProduct = {
   specs: []
 };
 
+const emptyBlogPost = {
+  title: "",
+  slug: "",
+  excerpt: "",
+  category: "Tips Software",
+  author: "Aplikasi.id",
+  authorUrl: "",
+  coverImageUrl: "",
+  content: "",
+  published: false
+};
+
 const formatRp = (amount) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(amount) || 0);
 const hasSortOrder = (value) => value !== "" && value !== null && value !== undefined && Number.isFinite(Number(value));
 const withOrder = (items) => items.map((product, index) => ({ ...product, sortOrder: hasSortOrder(product.sortOrder) ? Number(product.sortOrder) : index }));
@@ -83,7 +97,14 @@ export default function AdminPage() {
   const [heroSettings, setHeroSettings] = useState(defaultHeroSettings);
   const [accountEnabled, setAccountEnabled] = useState(false);
   const [footerSettings, setFooterSettings] = useState(defaultFooterSettings);
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [blogForm, setBlogForm] = useState(emptyBlogPost);
+  const [editingBlogSlug, setEditingBlogSlug] = useState(null);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [blogSaving, setBlogSaving] = useState(false);
+  const [blogError, setBlogError] = useState("");
   const productEditorRef = useRef(null);
+  const blogEditorRef = useRef(null);
 
   useEffect(() => {
     getAdminUser().then(setAdminUser).catch((error) => setNotice(error.message)).finally(() => setAuthReady(true));
@@ -122,6 +143,16 @@ export default function AdminPage() {
       })
       .catch(() => setNotice("Supabase tidak dapat diakses. Coba muat ulang katalog."));
   }, []);
+
+  useEffect(() => {
+    if (!authReady || !adminUser) return;
+    setBlogLoading(true);
+    setBlogError("");
+    fetchAdminBlogPosts()
+      .then(setBlogPosts)
+      .catch((error) => setBlogError(error.message))
+      .finally(() => setBlogLoading(false));
+  }, [authReady, adminUser]);
 
   const login = async (event) => {
     event.preventDefault();
@@ -289,6 +320,74 @@ export default function AdminPage() {
       setPage(1);
     } catch { setNotice("Gagal memuat katalog dari Supabase. Silakan coba lagi."); }
   };
+  const updateBlogField = (field, value) => setBlogForm((current) => ({ ...current, [field]: value }));
+  const scrollToBlogEditor = () => scrollAdminEditorIntoView(blogEditorRef.current, {
+    prefersReducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  });
+  const startNewBlogPost = () => {
+    if (blogSaving) return;
+    setEditingBlogSlug(null);
+    setBlogForm(emptyBlogPost);
+    setBlogError("");
+    scrollToBlogEditor();
+  };
+  const editBlogPost = (post) => {
+    if (blogSaving) return;
+    setEditingBlogSlug(post.slug);
+    setBlogForm({
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      category: post.category,
+      author: post.author,
+      authorUrl: post.authorUrl || "",
+      coverImageUrl: post.coverImageUrl || "",
+      content: post.content,
+      published: post.published
+    });
+    setBlogError("");
+    scrollToBlogEditor();
+  };
+  const saveBlogPost = async (event) => {
+    event.preventDefault();
+    if (blogSaving) return;
+    setBlogSaving(true);
+    setBlogError("");
+    try {
+      const post = await saveAdminBlogPost({
+        ...blogForm,
+        slug: blogForm.slug.trim() || slugifyBlogTitle(blogForm.title)
+      }, !editingBlogSlug);
+      setBlogPosts((current) => [post, ...current.filter((item) => item.slug !== post.slug)]
+        .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)));
+      setEditingBlogSlug(null);
+      setBlogForm(emptyBlogPost);
+      setNotice(post.published ? "Artikel berhasil diterbitkan." : "Draf artikel berhasil disimpan.");
+    } catch (error) {
+      setBlogError(error.message || "Gagal menyimpan artikel.");
+    } finally {
+      setBlogSaving(false);
+    }
+  };
+  const removeBlogPost = async (slug) => {
+    const post = blogPosts.find((item) => item.slug === slug);
+    if (!post || blogSaving || !window.confirm(`Hapus artikel “${post.title}”?`)) return;
+    setBlogSaving(true);
+    setBlogError("");
+    try {
+      await deleteAdminBlogPost(slug);
+      setBlogPosts((current) => current.filter((item) => item.slug !== slug));
+      if (editingBlogSlug === slug) {
+        setEditingBlogSlug(null);
+        setBlogForm(emptyBlogPost);
+      }
+      setNotice("Artikel berhasil dihapus.");
+    } catch (error) {
+      setBlogError(error.message || "Gagal menghapus artikel.");
+    } finally {
+      setBlogSaving(false);
+    }
+  };
   const readUpload = (field) => async (event) => {
     const input = event.target;
     const file = event.target.files?.[0];
@@ -321,7 +420,7 @@ export default function AdminPage() {
           <h1>Dashboard Produk</h1>
           <p className="admin-subtitle">Kelola katalog, gambar, harga, dan tujuan tombol beli tanpa mengubah kode toko.</p>
         </div>
-          <div className="admin-header-actions"><span className="admin-user-badge">{adminUser.login} · {adminUser.role}</span><button className="admin-primary" type="button" onClick={startNew}>+ Produk Baru</button><button className="admin-ghost" type="button" onClick={logout}>Keluar</button></div>
+          <div className="admin-header-actions"><span className="admin-user-badge">{adminUser.login} · {adminUser.role}</span><button className="admin-ghost" type="button" onClick={scrollToBlogEditor}>Kelola Blog</button><button className="admin-primary" type="button" onClick={startNew}>+ Produk Baru</button><button className="admin-ghost" type="button" onClick={logout}>Keluar</button></div>
       </header>
 
       <section className="admin-stats" aria-label="Ringkasan katalog">
@@ -406,6 +505,34 @@ export default function AdminPage() {
         <div className="admin-product-grid">{visibleProducts.map((product) => <article className="admin-product-row" key={product.id}><div className="admin-product-image"><img src={product.catalogImageUrl || product.imageUrl} alt="" loading="lazy" /></div><div className="admin-product-info"><strong>{product.title}</strong><span>{product.category} · {formatRp(product.price)}</span><small>Urutan {productList.findIndex((item) => item.id === product.id) + 1} · {product.buyUrl ? "URL beli aktif" : "Masuk keranjang"}</small></div><div className="admin-row-actions"><button className="admin-ghost" type="button" onClick={() => editProduct(product)}>Edit</button><button className="admin-danger" type="button" onClick={() => removeProduct(product.id)}>Hapus</button></div></article>)}</div>
         {visibleProducts.length === 0 && <div className="admin-empty">Produk tidak ditemukan.</div>}
         <div className="admin-pagination"><span>Menampilkan {visibleProducts.length} dari {filteredProducts.length} produk</span><div><button className="admin-ghost" type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>← Sebelumnya</button><strong>Halaman {page} / {pageCount}</strong><button className="admin-ghost" type="button" disabled={page === pageCount} onClick={() => setPage((current) => current + 1)}>Berikutnya →</button></div></div>
+      </section>
+
+      <section className="admin-editor admin-blog-editor" ref={blogEditorRef}>
+        <div className="admin-section-heading"><div><p className="admin-eyebrow">SEO &amp; KONTEN</p><h2>{editingBlogSlug ? "Edit artikel blog" : "Kelola Blog"}</h2></div><div className="admin-blog-heading-actions"><a className="admin-ghost" href="/blog" target="_blank" rel="noreferrer">Lihat Blog ↗</a><button className="admin-primary" type="button" disabled={blogSaving} onClick={startNewBlogPost}>+ Artikel Baru</button></div></div>
+        <p className="admin-blog-intro">Tulis panduan orisinal yang membantu pembaca. Artikel terbit tampil di <strong>/blog</strong> dan sitemap; draf hanya terlihat di dashboard. Isi artikel mendukung Markdown, seperti <code>## Subjudul</code>, daftar, tautan, dan tabel.</p>
+        {blogError && <p className="admin-blog-error" role="alert">{blogError}</p>}
+        {blogLoading && <p className="admin-blog-muted" role="status">Memuat artikel…</p>}
+        <form className="admin-form admin-blog-form" onSubmit={saveBlogPost}>
+          <label>Judul artikel<input value={blogForm.title} maxLength={180} required onChange={(event) => updateBlogField("title", event.target.value)} placeholder="Contoh: Cara memilih software untuk kuliah" /></label>
+          <label>URL artikel<input value={blogForm.slug} maxLength={120} readOnly={Boolean(editingBlogSlug)} onChange={(event) => updateBlogField("slug", event.target.value)} placeholder={slugifyBlogTitle(blogForm.title) || "url-artikel"} /><small>{editingBlogSlug ? "URL artikel tetap agar tautan yang sudah dibagikan tidak berubah." : "Boleh dikosongkan; URL akan dibuat dari judul."}</small></label>
+          <label>Topik / kategori<input value={blogForm.category} maxLength={80} required onChange={(event) => updateBlogField("category", event.target.value)} placeholder="Tips Software" /></label>
+          <label>Nama penulis<input value={blogForm.author} maxLength={120} required onChange={(event) => updateBlogField("author", event.target.value)} placeholder="Nama orang atau tim" /></label>
+          <label>Link bio penulis (opsional)<input value={blogForm.authorUrl} maxLength={500} onChange={(event) => updateBlogField("authorUrl", event.target.value)} placeholder="https://..." /><small>Tautkan ke profil penulis atau tim yang benar-benar tersedia.</small></label>
+          <label className="admin-wide">Ringkasan artikel<textarea value={blogForm.excerpt} maxLength={320} required onChange={(event) => updateBlogField("excerpt", event.target.value)} placeholder="Ringkas jawaban utama artikel dalam 1–2 kalimat. Ringkasan ini dipakai pada halaman Blog dan hasil pencarian." /></label>
+          <label className="admin-wide">URL gambar sampul (opsional)<input value={blogForm.coverImageUrl} onChange={(event) => updateBlogField("coverImageUrl", event.target.value)} placeholder="/assets/blog/gambar.jpg atau https://..." /><small>Gunakan gambar yang benar-benar mewakili isi artikel.</small></label>
+          <label className="admin-wide">Isi artikel<textarea className="admin-blog-content-input" value={blogForm.content} required onChange={(event) => updateBlogField("content", event.target.value)} placeholder={"Tulis jawaban lengkap dan berguna. Cantumkan langkah, contoh, sumber resmi, serta pengalaman yang benar-benar relevan.\n\n## Subjudul\n\nIsi pembahasan di sini."} /><small>Gunakan informasi yang sudah diverifikasi dan tautkan sumber resmi saat membahas spesifikasi atau kebijakan produk.</small></label>
+          <label className="admin-blog-publish-toggle"><input type="checkbox" checked={blogForm.published} onChange={(event) => updateBlogField("published", event.target.checked)} /><span>Terbitkan artikel agar dapat dibaca publik dan mesin pencari</span></label>
+          <div className="admin-form-actions"><button className="admin-primary" type="submit" disabled={blogSaving}>{blogSaving ? "Menyimpan…" : blogForm.published ? "Simpan & Terbitkan" : "Simpan Draf"}</button>{editingBlogSlug && <button className="admin-ghost" type="button" disabled={blogSaving} onClick={startNewBlogPost}>Batal edit</button>}</div>
+        </form>
+        <div className="admin-blog-list">
+          <div className="admin-blog-list-heading"><h3>Daftar artikel</h3><span>{blogPosts.length} artikel</span></div>
+          {blogPosts.map((post) => <article className="admin-blog-row" key={post.slug}>
+            <div className="admin-blog-row-copy"><strong>{post.title}</strong><small>/blog/{post.slug} · {post.category}</small></div>
+            <span className={`admin-blog-status ${post.published ? "is-published" : "is-draft"}`}>{post.published ? "Terbit" : "Draf"}</span>
+            <div className="admin-row-actions"><button className="admin-ghost" type="button" disabled={blogSaving} onClick={() => editBlogPost(post)}>Edit</button><button className="admin-danger" type="button" disabled={blogSaving} onClick={() => removeBlogPost(post.slug)}>Hapus</button></div>
+          </article>)}
+          {!blogLoading && !blogError && blogPosts.length === 0 && <p className="admin-blog-muted">Belum ada artikel. Tulis artikel pertama di form di atas.</p>}
+        </div>
       </section>
       {ordering && <OrderEditor products={productList} onClose={() => setOrdering(false)} onSaved={(ordered) => { persist(ordered, "Urutan berhasil disimpan dan katalog diperbarui."); setForm((current) => { const updated = ordered.find((item) => item.id === current.id); return updated ? { ...current, sortOrder: updated.sortOrder } : current; }); setOrdering(false); setPage(1); }} />}
       {notice && <div className="admin-toast">✓ {notice}</div>}

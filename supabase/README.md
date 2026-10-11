@@ -70,3 +70,13 @@ Pengujian lokal memakai data buatan, tidak mengakses transaksi produksi. Uji jug
 Jalankan `supabase/product-images.sql` di SQL Editor setelah `schema.sql`, lalu deploy kode terbaru. Script membuat bucket publik `product-images` dengan batas 5 MB dan izin upload hanya untuk admin/owner. File PNG, JPG, WebP, atau GIF diupload langsung ke Storage menggunakan sesi admin; data produk hanya menyimpan URL publiknya. Tidak menggunakan base64 untuk upload baru.
 
 Di `/adminn`, pilih gambar katalog, tunggu preview dan URL muncul, lalu klik **Simpan Perubahan** atau **Tambah Produk**. Jika upload gagal, gambar sebelumnya tetap digunakan. Gambar lama dalam base64 tetap bisa dibaca; upload ulang untuk menggantinya dengan file Storage. File yang diupload tetapi produknya tidak disimpan tetap berada di Storage; penghapusan produk tidak menghapus file secara otomatis.
+
+## Blog dan artikel SEO
+
+Sebelum memakai Blog di dashboard, jalankan `supabase/blog-posts.sql` di SQL Editor pada project Supabase yang sama. File ini aman dijalankan ulang dan membuat tabel `blog_posts` dengan RLS: publik hanya membaca artikel terbit, sedangkan admin/owner dapat mengelola draf dan artikel.
+
+Untuk memuat 10 artikel awal, jalankan `supabase/blog-seed.sql` setelah migrasi tabel. Artikel dibuat berstatus terbit dan langsung muncul di `/blog`; seed aman dijalankan ulang dan tidak menimpa artikel dengan slug yang sudah ada. Sumber isi artikel ada di `lib/blog-seed.json`; setelah mengubah sumber tersebut, regenerasi SQL dengan `node scripts/generate-blog-seed-sql.mjs`.
+
+Di `/adminn`, buka bagian **Kelola Blog** untuk membuat atau mengedit artikel. URL artikel dibuat dari judul jika dikosongkan dan dikunci setelah artikel dibuat supaya tautan yang dibagikan tetap stabil. Artikel dapat disimpan sebagai draf atau diterbitkan. Isi mendukung Markdown; metadata, tanggal terbit/perubahan, byline, structured data `BlogPosting`, dan sitemap dibuat otomatis. Hanya artikel terbit yang tampil di `/blog` dan sitemap.
+
+Setelah deploy, daftarkan `https://www.aplikasid.com/sitemap.xml` di Search Console jika belum terdaftar, lalu gunakan URL Inspection untuk meminta crawl URL Blog dan artikel yang baru diterbitkan. Konten yang membantu pembaca, punya sumber yang jelas, serta menampilkan penulis dan pengalaman yang benar-benar sesuai tetap perlu disiapkan; markup dan sitemap membantu pemahaman/crawl tetapi tidak menjamin posisi atau ringkasan AI tertentu.

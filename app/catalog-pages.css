@@ -71,3 +71,49 @@
 .product-card h3 a:focus-visible,.seo-product-card-link:focus-visible,.category-hub-card:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}
 @media(max-width:900px){.seo-products-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-detail-hero{gap:22px;padding:22px}.product-detail-image{min-height:270px}.product-detail-image img{max-height:330px}}
 @media(max-width:620px){.catalog-seo-page{padding-top:12px}.catalog-seo-page .container{padding-inline:16px}.catalog-page-hero{padding:25px 0 28px}.catalog-page-hero p{font-size:12px}.catalog-page-section-heading h2,.category-help-section h2{font-size:22px}.category-hub-grid,.seo-products-grid,.product-detail-sections{grid-template-columns:1fr}.category-hub-card{min-height:0;padding:20px}.product-detail-hero{grid-template-columns:1fr;padding:15px;gap:18px}.product-detail-image{min-height:220px}.product-detail-image img{height:230px;padding:18px}.product-detail-content h1{font-size:30px}.product-detail-sections{margin-top:14px}.product-detail-panel,.product-detail-features,.category-help-section{padding:19px}.catalog-nav-cta{padding:8px 10px;font-size:10px}.catalog-page-nav .nav-menu{display:none}.catalog-page-note{margin-top:20px}}
+
+.blog-list-section{margin-top:4px}
+.blog-post-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.blog-post-card,.blog-related-card{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 4px 14px #1e40730a;transition:transform .18s,border-color .18s,box-shadow .18s}
+.blog-post-card:hover,.blog-related-card:hover{transform:translateY(-3px);border-color:#9bb7e7;box-shadow:var(--shadow)}
+.blog-post-card-link{display:flex;height:100%;flex-direction:column;color:inherit;text-decoration:none}
+.blog-post-card-image{display:block;width:100%;height:180px;object-fit:cover;background:#edf4fc}
+.blog-post-card-body{display:flex;flex:1;flex-direction:column;padding:19px}
+.blog-post-category{display:inline-flex;width:max-content;max-width:100%;padding:5px 9px;border-radius:999px;background:#edf4ff;color:#3466a7;font-size:9px;font-weight:800;letter-spacing:.4px}
+.blog-post-card-body h2{margin:10px 0 8px;color:#172554;font:700 19px/1.35 Outfit,sans-serif}
+.blog-post-card-body p{margin:0 0 18px;color:#627187;font-size:12px;line-height:1.8}
+.blog-post-card-meta{margin-top:auto;color:#8491a4;font-size:10px}
+.blog-post-read-more{display:flex;justify-content:space-between;margin-top:15px;padding-top:12px;border-top:1px solid #edf1f7;color:#2563eb;font-size:11px;font-weight:800}
+.blog-empty-state{padding:32px;border:1px dashed #cdd9ea;border-radius:14px;background:#fff;text-align:center}
+.blog-empty-state h2{margin:0;color:var(--navy);font:700 22px Outfit,sans-serif}
+.blog-empty-state p{margin:8px auto 18px;color:#627187;font-size:12px}
+.blog-reading{max-width:900px;margin:0 auto;padding:clamp(20px,5vw,54px);border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 8px 26px #1e40730a}
+.blog-reading-header h1{max-width:780px;margin:12px 0;color:var(--navy);font:800 clamp(32px,4.5vw,48px)/1.15 Outfit,sans-serif;letter-spacing:-.7px}
+.blog-reading-excerpt{max-width:760px;margin:0;color:#5e6c82;font-size:16px;line-height:1.8}
+.blog-reading-meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:17px 0 24px;color:#8491a4;font-size:11px}
+.blog-reading-meta span+span:before{content:"·";margin-right:18px;color:#c1cad7}
+.blog-reading-cover{display:block;width:100%;max-height:500px;object-fit:cover;border-radius:14px;background:#edf4fc}
+.blog-reading-content{max-width:760px;margin:38px auto 0;color:#35445a;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.blog-reading-content h2{margin:36px 0 10px;color:var(--navy);font:700 27px/1.3 Outfit,sans-serif}
+.blog-reading-content h3{margin:26px 0 8px;color:var(--navy);font:700 20px/1.4 Outfit,sans-serif}
+.blog-reading-content p,.blog-reading-content ul,.blog-reading-content ol{margin:0 0 18px}
+.blog-reading-content ul,.blog-reading-content ol{padding-left:24px}
+.blog-reading-content li{padding-left:4px;margin:5px 0}
+.blog-reading-content a{color:#1d4ed8;text-decoration:underline;text-underline-offset:3px}
+.blog-reading-content blockquote{margin:24px 0;padding:4px 0 4px 18px;border-left:3px solid #93b4e9;color:#60718a}
+.blog-reading-content img{max-width:100%;height:auto;border-radius:10px}
+.blog-reading-content pre{overflow:auto;padding:16px;border-radius:10px;background:#0b1934;color:#e6efff;font-size:12px}
+.blog-reading-content code{padding:2px 5px;border-radius:5px;background:#f1f5f9;font-size:.9em}
+.blog-reading-content pre code{padding:0;background:transparent}
+.blog-reading-content table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;font-size:13px}
+.blog-reading-content th,.blog-reading-content td{padding:9px 12px;border:1px solid #dce5f1;text-align:left}
+.blog-reading-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-top:38px;padding-top:22px;border-top:1px solid #edf1f7}
+.blog-reading-footer .guide-text-link{color:#45658f;font-size:12px;font-weight:800;text-decoration:none}
+.blog-related-section{margin-top:42px}
+.blog-related-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.blog-related-card{display:flex;flex-direction:column;gap:10px;padding:18px;color:inherit;text-decoration:none}
+.blog-related-card strong{color:var(--navy);font:700 16px/1.4 Outfit,sans-serif}
+.blog-related-card>span:last-child{color:#627187;font-size:11px;line-height:1.7}
+.blog-post-card:focus-within,.blog-related-card:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}
+@media(max-width:900px){.blog-post-grid,.blog-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.blog-post-grid,.blog-related-grid{grid-template-columns:1fr}.blog-post-card-image{height:200px}.blog-reading{padding:21px 18px;border-radius:14px}.blog-reading-excerpt{font-size:14px}.blog-reading-content{margin-top:28px;font-size:14px}.blog-reading-content h2{font-size:23px}.blog-reading-footer{align-items:flex-start;flex-direction:column}.blog-reading-meta span+span:before{margin-right:9px}.blog-reading-meta{gap:8px 10px}}

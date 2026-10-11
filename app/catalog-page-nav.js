@@ -10,7 +10,7 @@ export default function CatalogPageNav() {
       </Link>
       <nav className="nav-menu" aria-label="Navigasi utama">
         <Link className="nav-link" href="/">Beranda</Link>
-        <Link className="nav-link" href="/kategori">Kategori</Link>
+        <Link className="nav-link" href="/blog">Blog</Link>
         <Link className="nav-link" href="/panduan">Panduan</Link>
       </nav>
       <Link className="catalog-nav-cta" href="/#produk">Lihat katalog <span aria-hidden="true">→</span></Link>

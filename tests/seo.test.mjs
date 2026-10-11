@@ -14,11 +14,12 @@ test("site URL is normalized to the canonical origin", () => {
   assert.throws(() => resolveSiteUrl("javascript:alert(1)"), /HTTP atau HTTPS/);
 });
 
-test("sitemap includes the homepage, category index, and published guide routes", () => {
+test("sitemap includes the homepage, blog, categories, and published guide routes", () => {
   const sitemap = createSitemap("https://www.aplikasid.com", ["cara-membeli-software", "mengunduh-produk"]);
   assert.deepEqual(sitemap.map(({ url }) => url), [
     "https://www.aplikasid.com/",
     "https://www.aplikasid.com/panduan",
+    "https://www.aplikasid.com/blog",
     "https://www.aplikasid.com/kategori",
     "https://www.aplikasid.com/panduan/cara-membeli-software",
     "https://www.aplikasid.com/panduan/mengunduh-produk"
@@ -31,11 +32,21 @@ test("sitemap includes dynamic category and product routes", () => {
   assert.deepEqual(sitemap.map(({ url }) => url), [
     "https://www.aplikasid.com/",
     "https://www.aplikasid.com/panduan",
+    "https://www.aplikasid.com/blog",
     "https://www.aplikasid.com/kategori",
     "https://www.aplikasid.com/kategori/engineering-3d",
     "https://www.aplikasid.com/produk/app-autocad",
     "https://www.aplikasid.com/produk/app-office"
   ]);
+});
+
+test("sitemap includes published blog post routes and their last modified date", () => {
+  const sitemap = createSitemap("https://www.aplikasid.com", [], [], [], [
+    { slug: "memilih-software", updatedAt: "2026-10-10T12:00:00.000Z" }
+  ]);
+  const article = sitemap.find(({ url }) => url === "https://www.aplikasid.com/blog/memilih-software");
+  assert.equal(article.lastModified, "2026-10-10T12:00:00.000Z");
+  assert.equal(article.priority, 0.7);
 });
 
 test("robots exposes the sitemap and keeps API routes out of crawling", () => {

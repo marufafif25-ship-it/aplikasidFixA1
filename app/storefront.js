@@ -124,7 +124,7 @@ export default function Storefront({ initialData }) {
           <nav className="nav-menu" aria-label="Navigasi utama">
             <button className="nav-link active" onClick={() => scrollTo("home")}>Beranda</button>
             <button className="nav-link" onClick={() => scrollTo("produk")}>Produk</button>
-            <Link className="nav-link" style={{ textDecoration: "none" }} href="/kategori">Kategori</Link>
+            <Link className="nav-link" style={{ textDecoration: "none" }} href="/blog">Blog</Link>
             <Link className="nav-link" style={{ textDecoration: "none" }} href="/panduan">Panduan</Link>
             <button className="nav-link" onClick={() => scrollTo("garansi")}>Garansi</button>
           </nav>
