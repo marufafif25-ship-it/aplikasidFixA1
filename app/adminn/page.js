@@ -62,10 +62,14 @@ const emptyBlogPost = {
   authorUrl: "",
   coverImageUrl: "",
   content: "",
+  views: "",
+  viewsUpdatedAt: null,
   published: false
 };
 
 const formatRp = (amount) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(amount) || 0);
+const formatBlogViews = (views) => new Intl.NumberFormat("id-ID").format(Number(views) || 0);
+const formatBlogViewsUpdatedAt = (value) => value ? new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" }).format(new Date(value)) : "";
 const hasSortOrder = (value) => value !== "" && value !== null && value !== undefined && Number.isFinite(Number(value));
 const withOrder = (items) => items.map((product, index) => ({ ...product, sortOrder: hasSortOrder(product.sortOrder) ? Number(product.sortOrder) : index }));
 const normalizeFooterSettings = ({ email, ...settings }) => ({ ...defaultFooterSettings, ...settings, tiktok: settings.tiktok || settings.instagram || "" });
@@ -343,6 +347,8 @@ export default function AdminPage() {
       authorUrl: post.authorUrl || "",
       coverImageUrl: post.coverImageUrl || "",
       content: post.content,
+      views: String(post.views ?? 0),
+      viewsUpdatedAt: post.viewsUpdatedAt || null,
       published: post.published
     });
     setBlogError("");
@@ -517,6 +523,7 @@ export default function AdminPage() {
           <label>URL artikel<input value={blogForm.slug} maxLength={120} readOnly={Boolean(editingBlogSlug)} onChange={(event) => updateBlogField("slug", event.target.value)} placeholder={slugifyBlogTitle(blogForm.title) || "url-artikel"} /><small>{editingBlogSlug ? "URL artikel tetap agar tautan yang sudah dibagikan tidak berubah." : "Boleh dikosongkan; URL akan dibuat dari judul."}</small></label>
           <label>Topik / kategori<input value={blogForm.category} maxLength={80} required onChange={(event) => updateBlogField("category", event.target.value)} placeholder="Tips Software" /></label>
           <label>Nama penulis<input value={blogForm.author} maxLength={120} required onChange={(event) => updateBlogField("author", event.target.value)} placeholder="Nama orang atau tim" /></label>
+          <label>Jumlah dilihat<input type="number" min="0" step="1" inputMode="numeric" value={blogForm.views} onChange={(event) => updateBlogField("views", event.target.value)} placeholder="Salin dari Google Analytics" /><small>Masukkan page views dari Google Analytics; nilai di situs diperbarui saat artikel disimpan.{blogForm.viewsUpdatedAt ? ` Terakhir diperbarui ${formatBlogViewsUpdatedAt(blogForm.viewsUpdatedAt)}.` : ""}</small></label>
           <label>Link bio penulis (opsional)<input value={blogForm.authorUrl} maxLength={500} onChange={(event) => updateBlogField("authorUrl", event.target.value)} placeholder="https://..." /><small>Tautkan ke profil penulis atau tim yang benar-benar tersedia.</small></label>
           <label className="admin-wide">Ringkasan artikel<textarea value={blogForm.excerpt} maxLength={320} required onChange={(event) => updateBlogField("excerpt", event.target.value)} placeholder="Ringkas jawaban utama artikel dalam 1–2 kalimat. Ringkasan ini dipakai pada halaman Blog dan hasil pencarian." /></label>
           <label className="admin-wide">URL gambar sampul (opsional)<input value={blogForm.coverImageUrl} onChange={(event) => updateBlogField("coverImageUrl", event.target.value)} placeholder="/assets/blog/gambar.jpg atau https://..." /><small>Gunakan gambar yang benar-benar mewakili isi artikel.</small></label>
@@ -527,7 +534,7 @@ export default function AdminPage() {
         <div className="admin-blog-list">
           <div className="admin-blog-list-heading"><h3>Daftar artikel</h3><span>{blogPosts.length} artikel</span></div>
           {blogPosts.map((post) => <article className="admin-blog-row" key={post.slug}>
-            <div className="admin-blog-row-copy"><strong>{post.title}</strong><small>/blog/{post.slug} · {post.category}</small></div>
+            <div className="admin-blog-row-copy"><strong>{post.title}</strong><small>/blog/{post.slug} · {post.category} · {formatBlogViews(post.views)} dilihat dari GA</small></div>
             <span className={`admin-blog-status ${post.published ? "is-published" : "is-draft"}`}>{post.published ? "Terbit" : "Draf"}</span>
             <div className="admin-row-actions"><button className="admin-ghost" type="button" disabled={blogSaving} onClick={() => editBlogPost(post)}>Edit</button><button className="admin-danger" type="button" disabled={blogSaving} onClick={() => removeBlogPost(post.slug)}>Hapus</button></div>
           </article>)}

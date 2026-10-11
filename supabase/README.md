@@ -73,9 +73,11 @@ Di `/adminn`, pilih gambar katalog, tunggu preview dan URL muncul, lalu klik **S
 
 ## Blog dan artikel SEO
 
-Sebelum memakai Blog di dashboard, jalankan `supabase/blog-posts.sql` di SQL Editor pada project Supabase yang sama. File ini aman dijalankan ulang dan membuat tabel `blog_posts` dengan RLS: publik hanya membaca artikel terbit, sedangkan admin/owner dapat mengelola draf dan artikel.
+Sebelum memakai Blog di dashboard, jalankan `supabase/blog-posts.sql` di SQL Editor pada project Supabase yang sama. File ini aman dijalankan ulang dan membuat tabel `blog_posts` dengan RLS: publik hanya membaca artikel terbit, sedangkan admin/owner dapat mengelola draf dan artikel. Untuk menyimpan angka Views yang disalin dari Google Analytics di dashboard, jalankan juga `supabase/blog-views.sql`.
 
-Untuk memuat 10 artikel awal, jalankan `supabase/blog-seed.sql` setelah migrasi tabel. Artikel dibuat berstatus terbit dan langsung muncul di `/blog`; seed aman dijalankan ulang dan tidak menimpa artikel dengan slug yang sudah ada. Sumber isi artikel ada di `lib/blog-seed.json`; setelah mengubah sumber tersebut, regenerasi SQL dengan `node scripts/generate-blog-seed-sql.mjs`.
+Untuk memuat 30 artikel, jalankan `supabase/blog-seed.sql` setelah migrasi tabel. Artikel dibuat berstatus terbit dan langsung muncul di `/blog`; seed aman dijalankan ulang dan tidak menimpa artikel dengan slug yang sudah ada. Sepuluh artikel awal bersumber dari `lib/blog-seed.json` dan 20 artikel tambahan dari `lib/blog-seed-additions.mjs`.
+
+Kolom Views di dashboard menerima total page views dari laporan Google Analytics. Nilai diperbarui manual saat artikel disimpan, bukan tersinkron otomatis. Angka nol tidak ditampilkan kepada pengunjung.
 
 Di `/adminn`, buka bagian **Kelola Blog** untuk membuat atau mengedit artikel. URL artikel dibuat dari judul jika dikosongkan dan dikunci setelah artikel dibuat supaya tautan yang dibagikan tetap stabil. Artikel dapat disimpan sebagai draf atau diterbitkan. Isi mendukung Markdown; metadata, tanggal terbit/perubahan, byline, structured data `BlogPosting`, dan sitemap dibuat otomatis. Hanya artikel terbit yang tampil di `/blog` dan sitemap.
 

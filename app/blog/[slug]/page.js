@@ -13,6 +13,10 @@ function formatDate(value) {
   return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" }).format(new Date(value));
 }
 
+function formatBlogViews(value) {
+  return new Intl.NumberFormat("id-ID").format(Number(value) || 0);
+}
+
 function getImageUrl(post) {
   return post.coverImageUrl ? new URL(post.coverImageUrl, SITE_URL).toString() : new URL("/opengraph-image", SITE_URL).toString();
 }
@@ -72,7 +76,7 @@ export default async function BlogArticlePage({ params }) {
             <span className="blog-post-category">{post.category}</span>
             <h1>{post.title}</h1>
             <p className="blog-reading-excerpt">{post.excerpt}</p>
-            <div className="blog-reading-meta"><span>Oleh {post.authorUrl ? <Link href={post.authorUrl}>{post.author}</Link> : post.author}</span><span>Diterbitkan {formatDate(post.publishedAt)}</span>{wasUpdatedAfterPublishing && <span>Diperbarui {formatDate(post.updatedAt)}</span>}<span>{getBlogReadingTime(post.content)} menit baca</span></div>
+            <div className="blog-reading-meta"><span>Oleh {post.authorUrl ? <Link href={post.authorUrl}>{post.author}</Link> : post.author}</span><span>Diterbitkan {formatDate(post.publishedAt)}</span>{wasUpdatedAfterPublishing && <span>Diperbarui {formatDate(post.updatedAt)}</span>}<span>{getBlogReadingTime(post.content)} menit baca</span>{post.views > 0 && <span>{formatBlogViews(post.views)} dilihat</span>}</div>
             {post.coverImageUrl && <img className="blog-reading-cover" src={post.coverImageUrl} alt={post.title} fetchPriority="high" />}
           </header>
           <div className="blog-reading-content"><ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown></div>

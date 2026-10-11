@@ -10,10 +10,14 @@ create table if not exists public.blog_posts (
   author_url text,
   cover_image_url text,
   published boolean not null default false,
+  views bigint not null default 0 check (views >= 0),
+  views_updated_at timestamptz,
   published_at timestamptz,
   updated_at timestamptz not null default now()
 );
 alter table public.blog_posts add column if not exists author_url text;
+alter table public.blog_posts add column if not exists views bigint not null default 0 check (views >= 0);
+alter table public.blog_posts add column if not exists views_updated_at timestamptz;
 create index if not exists blog_posts_published_date_idx on public.blog_posts(published, published_at desc);
 alter table public.blog_posts enable row level security;
 revoke all on public.blog_posts from anon, authenticated;

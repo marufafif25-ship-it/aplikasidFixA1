@@ -64,7 +64,7 @@ app/page.js memuat katalog awal dari lib/storefront-server.js. Fungsi getStorefr
 
 Data produk disimpan di products.data sebagai JSONB, dengan ID dan urutan terpisah. Halaman produk/kategori mengambil data dari katalog yang sama. URL checkout tersimpan pada buyUrl; lib/checkout.js hanya mengizinkan URL HTTP(S) yang valid dan checkout berlangsung di Lynk.id, bukan diproses sendiri oleh aplikasi.
 
-Artikel disimpan per baris di `blog_posts`. Halaman publik merender Markdown menjadi HTML di server, metadata dan `BlogPosting` JSON-LD dibuat per artikel, dan sitemap hanya memuat artikel terbit. Indeks Blog menampilkan 9 artikel per halaman melalui URL `?page=`. Terapkan `supabase/blog-posts.sql` setelah schema utama sebelum mengelola artikel dari `/adminn`.
+Artikel disimpan per baris di `blog_posts`. Halaman publik merender Markdown menjadi HTML di server, metadata dan `BlogPosting` JSON-LD dibuat per artikel, dan sitemap hanya memuat artikel terbit. Indeks Blog menampilkan 9 artikel per halaman melalui URL `?page=`. Terapkan `supabase/blog-posts.sql` setelah schema utama sebelum mengelola artikel dari `/adminn`. Migrasi `supabase/blog-views.sql` menambahkan kolom untuk total Views Google Analytics yang dimasukkan manual dari dashboard; nilai nol tidak ditampilkan ke publik.
 
 Dashboard memakai Supabase Auth. Role disimpan di admin_users; RLS database menjadi lapisan otorisasi selain pemeriksaan API. Upload gambar baru dilakukan dari sesi admin ke bucket Storage product-images. Gambar base64 lama masih ditangani route gambar khusus.
 
@@ -89,6 +89,7 @@ SQL utama dan tambahan:
 - supabase/product-downloads.sql: pemetaan unduhan privat.
 - supabase/product-images.sql: bucket Storage publik dengan upload terbatas untuk admin.
 - supabase/blog-posts.sql: tabel artikel blog dan policy baca/tulis berbasis role.
+- supabase/blog-views.sql: kolom untuk total Views artikel yang disalin manual dari Google Analytics.
 - supabase/blog-seed.sql: 30 artikel untuk diimpor setelah tabel Blog dibuat; 10 artikel awal bersumber dari `lib/blog-seed.json` dan 20 artikel tambahan dari `lib/blog-seed-additions.mjs`.
 - supabase/import-data.sql: hasil impor katalog; dapat dibuat ulang dari data migrasi, jadi periksa sebelum menimpanya.
 

@@ -41,6 +41,10 @@ function formatDate(value) {
   return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" }).format(new Date(value));
 }
 
+function formatBlogViews(value) {
+  return new Intl.NumberFormat("id-ID").format(Number(value) || 0);
+}
+
 export default async function BlogIndexPage({ searchParams }) {
   await connection();
   const [{ page: requestedPage }, allPosts] = await Promise.all([searchParams, getPublishedBlogPosts()]);
@@ -74,7 +78,7 @@ export default async function BlogIndexPage({ searchParams }) {
                 <span className="blog-post-category">{post.category}</span>
                 <h2>{post.title}</h2>
                 <p>{post.excerpt}</p>
-                <span className="blog-post-card-meta">{formatDate(post.publishedAt)} · {getBlogReadingTime(post.content)} menit baca</span>
+                <span className="blog-post-card-meta">{formatDate(post.publishedAt)} · {getBlogReadingTime(post.content)} menit baca{post.views > 0 ? ` · ${formatBlogViews(post.views)} dilihat` : ""}</span>
                 <span className="blog-post-read-more">Baca artikel <span aria-hidden="true">→</span></span>
               </div>
             </Link>

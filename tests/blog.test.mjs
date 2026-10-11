@@ -32,11 +32,15 @@ test("blog posts validate content, metadata, publish status, and safe cover URLs
   const normalized = normalizeBlogPost(post);
   assert.equal(normalized.published, true);
   assert.equal(normalized.coverImageUrl, "/assets/blog/software.jpg");
+  assert.equal(normalized.views, 0);
+  assert.equal(normalizeBlogPost({ ...post, views: "789" }).views, 789);
   assert.equal(normalizeBlogPost({ ...post, slug: "Huruf Besar!" }).slug, "huruf-besar");
   assert.throws(() => normalizeBlogPost({ ...post, excerpt: "" }), /Ringkasan/);
   assert.throws(() => normalizeBlogPost({ ...post, coverImageUrl: "javascript:alert(1)" }), /URL HTTP/);
   assert.throws(() => normalizeBlogPost({ ...post, authorUrl: "javascript:alert(1)" }), /Link bio/);
   assert.throws(() => normalizeBlogPost({ ...post, published: "true" }), /Status terbit/);
+  assert.throws(() => normalizeBlogPost({ ...post, views: "-1" }), /Jumlah dilihat/);
+  assert.throws(() => normalizeBlogPost({ ...post, views: "1.5" }), /Jumlah dilihat/);
 });
 
 test("blog database rows map to the public article shape", () => {
@@ -50,12 +54,16 @@ test("blog database rows map to the public article shape", () => {
     content: post.content,
     cover_image_url: post.coverImageUrl,
     published: true,
+    views: "789",
+    views_updated_at: "2026-10-11T13:00:00.000Z",
     published_at: post.publishedAt,
     updated_at: post.updatedAt
   });
   assert.equal(mapped.coverImageUrl, post.coverImageUrl);
   assert.equal(mapped.publishedAt, post.publishedAt);
   assert.equal(mapped.updatedAt, post.updatedAt);
+  assert.equal(mapped.views, 789);
+  assert.equal(mapped.viewsUpdatedAt, "2026-10-11T13:00:00.000Z");
 });
 
 test("blog article schema identifies the article, author, publisher, dates, and language", () => {
