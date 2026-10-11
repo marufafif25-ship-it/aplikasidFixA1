@@ -75,6 +75,7 @@ test("blog index schema uses the canonical site URL", () => {
   const data = createBlogIndexStructuredData("https://www.aplikasid.com");
   assert.equal(data["@type"], "Blog");
   assert.equal(data.url, "https://www.aplikasid.com/blog");
+  assert.equal(createBlogIndexStructuredData("https://www.aplikasid.com", 2).url, "https://www.aplikasid.com/blog?page=2");
 });
 
 test("blog reading time is at least one minute and scales with article length", () => {
