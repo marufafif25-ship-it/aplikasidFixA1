@@ -1,4 +1,3 @@
-import { revalidateTag } from "next/cache";
 import { blogPostFromRow, normalizeBlogPost } from "../../../../lib/blog.mjs";
 import { serverSupabase } from "../../../../lib/storefront-server";
 
@@ -69,7 +68,6 @@ export async function POST(request) {
     const { data, error } = await client.from("blog_posts").upsert(row).select("slug,title,excerpt,content,category,author,author_url,cover_image_url,published,published_at,updated_at").single();
     if (error) return Response.json({ error: "Gagal menyimpan artikel ke Supabase." }, { status: 500, headers: PRIVATE_HEADERS });
 
-    revalidateTag("blog-posts", { expire: 0 });
     return Response.json({ post: blogPostFromRow(data) }, { headers: PRIVATE_HEADERS });
   } catch {
     return Response.json({ error: "Permintaan gagal. Silakan coba lagi." }, { status: 500, headers: PRIVATE_HEADERS });
@@ -86,7 +84,6 @@ export async function DELETE(request) {
     const { data, error } = await client.from("blog_posts").delete().eq("slug", slug).select("slug").maybeSingle();
     if (error) return Response.json({ error: "Gagal menghapus artikel." }, { status: 500, headers: PRIVATE_HEADERS });
     if (!data) return Response.json({ error: "Artikel tidak ditemukan." }, { status: 404, headers: PRIVATE_HEADERS });
-    revalidateTag("blog-posts", { expire: 0 });
     return Response.json({ success: true }, { headers: PRIVATE_HEADERS });
   } catch {
     return Response.json({ error: "Permintaan gagal. Silakan coba lagi." }, { status: 500, headers: PRIVATE_HEADERS });
