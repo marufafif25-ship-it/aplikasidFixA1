@@ -78,7 +78,7 @@ export default async function ProductDetailPage({ params }) {
   const productData = createProductStructuredData({ product, description, canonicalUrl, siteUrl: SITE_URL, imageUrl });
   const breadcrumbData = createBreadcrumbStructuredData(SITE_URL, [
     { name: "Beranda", path: "/" },
-    { name: "Kategori software", path: "/kategori" },
+    { name: "Kategori produk", path: "/kategori" },
     ...(category ? [{ name: category.label, path: categoryPath }] : []),
     { name: product.title, path: productPath }
   ]);
@@ -90,7 +90,7 @@ export default async function ProductDetailPage({ params }) {
       <div className="container">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(productData) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbData) }} />
-        <nav className="catalog-breadcrumbs" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span aria-hidden="true">/</span><Link href="/kategori">Kategori</Link><span aria-hidden="true">/</span><Link href={categoryPath}>{categoryLabel}</Link><span aria-hidden="true">/</span><span>{product.title}</span></nav>
+        <nav className="catalog-breadcrumbs" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span aria-hidden="true">/</span><Link href="/kategori">Kategori produk</Link><span aria-hidden="true">/</span><Link href={categoryPath}>{categoryLabel}</Link><span aria-hidden="true">/</span><span>{product.title}</span></nav>
 
         <article className="product-detail-hero">
           <div className="product-detail-image"><Image src={imageUrl} alt={product.title} width={560} height={420} unoptimized={!localImage} priority sizes="(max-width: 800px) 100vw, 45vw" /></div>
@@ -140,7 +140,7 @@ export default async function ProductDetailPage({ params }) {
           <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">KATEGORI {categoryLabel.toUpperCase()}</span><h2 id="related-products-heading">Produk terkait</h2></div><Link href={categoryPath}>Lihat semua <span aria-hidden="true">→</span></Link></div>
           <div className="seo-products-grid">{relatedProducts.map((item) => <CatalogProductCard key={item.id} product={item} />)}</div>
         </section>}
-        <p className="catalog-page-note">Lihat pilihan lain di <Link href={categoryPath}>kategori {categoryLabel}</Link> atau <Link href="/kategori">semua kategori software</Link>.</p>
+        <p className="catalog-page-note">Lihat pilihan lain di <Link href={categoryPath}>kategori {categoryLabel}</Link> atau <Link href="/kategori">semua kategori produk</Link>.</p>
       </div>
     </main>
   </>;

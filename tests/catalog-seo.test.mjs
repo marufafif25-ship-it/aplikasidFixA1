@@ -24,11 +24,14 @@ const product = {
 };
 
 test("category landing pages have stable, unique routes and copy", () => {
-  assert.equal(productCategories.length, 5);
-  assert.equal(new Set(productCategories.map(({ slug }) => slug)).size, 5);
+  assert.equal(productCategories.length, 6);
+  assert.equal(new Set(productCategories.map(({ slug }) => slug)).size, 6);
   assert.equal(getCategoryBySlug("engineering-3d").value, "Engineering");
   assert.equal(getCategoryByValue("Video").slug, "video-editing");
   assert.equal(getCategoryPath("Engineering"), "/kategori/engineering-3d");
+  assert.equal(getCategoryBySlug("game").value, "Game");
+  assert.equal(getCategoryPath("Game"), "/kategori/game");
+  assert.match(getCategoryByValue("Game").description, /game PC/);
 });
 
 test("product URLs use stable product IDs, independent of display title", () => {

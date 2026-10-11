@@ -10,9 +10,9 @@ import { productCategories, getCategoryPath, getProductPath } from "../lib/catal
 import ChatWidget from "./chat-widget";
 
 const defaultHeroSettings = {
-  title: "Kebutuhan Software",
-  titleLineTwo: "untuk Kuliah hingga Kerja",
-  description: "Temukan pilihan software untuk mengerjakan tugas, mengolah data penelitian, membuat desain, dan mendukung pekerjaan sehari-hari.",
+  title: "Software & Game",
+  titleLineTwo: "untuk Kerja hingga Hiburan",
+  description: "Temukan software dan game untuk mengerjakan tugas, mengolah data, membuat desain, dan menikmati hiburan digital.",
   primaryLabel: "Mulai Belanja",
   primaryTarget: "produk",
   secondaryLabel: "Cek Pesanan",
@@ -38,6 +38,17 @@ const normalizeFaqItems = (items) => items.map((item, index) => ({
 })).filter((item) => item.question && item.answer);
 
 const formatRp = (amount) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
+function CategoryQuickIcon({ category }) {
+  const icons = {
+    Office: <><path d="M7 3.75h7l4.25 4.25v12.25H7z" /><path d="M14 3.75V8h4.25M10 12h5m-5 3.5h5" /></>,
+    Design: <><path d="m4.5 16.5-.8 4.3 4.3-.8L19 9l-4-4z" /><path d="m13.5 6.5 4 4M5 17l3 3" /></>,
+    Engineering: <><path d="m12 3.5 8 4.25v8.5L12 20.5l-8-4.25v-8.5z" /><path d="m4.4 7.8 7.6 4.1 7.6-4.1M12 12v8.2" /></>,
+    Utility: <><path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-4.8 4.8a2 2 0 1 0 2.8 2.8l4.8-4.8a5 5 0 0 0 6.6-6.6l-3 3-3-3z" /></>,
+    Game: <><path d="M7 9h10a4 4 0 0 1 3.8 5.2l-1 3a2 2 0 0 1-3.4.8L14 16h-4l-2.4 2a2 2 0 0 1-3.4-.8l-1-3A4 4 0 0 1 7 9Z" /><path d="M7.5 12v3m-1.5-1.5h3" /><circle cx="15.5" cy="12.5" r=".7" fill="currentColor" stroke="none" /><circle cx="17.5" cy="14.5" r=".7" fill="currentColor" stroke="none" /></>
+  };
+
+  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{icons[category]}</svg>;
+}
 const orderProducts = (items) => [...items].sort((a, b) => {
   const aOrder = a.sortOrder === "" || a.sortOrder === null || a.sortOrder === undefined ? Number.MAX_SAFE_INTEGER : Number(a.sortOrder);
   const bOrder = b.sortOrder === "" || b.sortOrder === null || b.sortOrder === undefined ? Number.MAX_SAFE_INTEGER : Number(b.sortOrder);
@@ -129,38 +140,49 @@ export default function Storefront({ initialData }) {
           <div className="container">
             <div className="hero-banner">
               <div className="hero-content">
-                <span className="hero-badge">▱ &nbsp; {productList.length.toLocaleString("id-ID")} Software Aktif</span>
+                <span className="hero-badge">▱ &nbsp; {productList.length.toLocaleString("id-ID")} Produk Aktif</span>
                 <h1>{heroSettings.title}<br />{heroSettings.titleLineTwo}</h1>
                 <p>{heroSettings.description}</p>
                 <div className="hero-cta"><button className="btn-primary" onClick={() => scrollTo(heroSettings.primaryTarget || "produk")}>{heroSettings.primaryLabel} <span>→</span></button></div>
                 <div className="trust-badges"><span><BadgeCheckIcon />{heroSettings.trustOne}</span><span><LightningIcon />{heroSettings.trustTwo}</span><span><HeadsetIcon />{heroSettings.trustThree}</span></div>
               </div>
               <div className="category-quick-grid">
-                {[['Office', 'Windows · Office', '▣'], ['Design', 'Adobe · Corel', '◈'], ['Engineering', 'AutoCAD · SketchUp', '✧'], ['Utility', 'IDM · Recovery', '⚿']].map(([name, description, icon]) => <button className="quick-cat-card" key={name} onClick={() => { setCategory(name); scrollTo("produk"); }}><strong>{icon}</strong><span><b>{name}</b><small>{description}</small></span></button>)}
+                <svg className="category-orbit-track" viewBox="0 0 460 360" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                  <defs><linearGradient id="category-orbit-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#bfdbfe" stopOpacity=".58" /><stop offset="38%" stopColor="#93c5fd" stopOpacity=".48" /><stop offset="72%" stopColor="#a5d8ff" stopOpacity=".46" /><stop offset="100%" stopColor="#bfdbfe" stopOpacity=".58" /></linearGradient></defs>
+                  <path className="category-orbit-line" d="M 42 173 C 26 91 98 31 204 30 C 318 28 417 77 416 151 C 414 230 340 304 239 324 C 134 344 45 300 34 230 C 25 172 82 126 158 120 C 234 114 307 141 346 191" />
+                  <circle className="category-orbit-spark" cx="42" cy="173" r="2.6" /><circle className="category-orbit-spark" cx="416" cy="151" r="2.6" /><circle className="category-orbit-spark" cx="239" cy="324" r="2.6" />
+                </svg>
+                {[
+                  ["Office", "Windows · Office"],
+                  ["Design", "Adobe · Corel"],
+                  ["Engineering", "AutoCAD · SketchUp"],
+                  ["Utility", "IDM · Recovery"],
+                  ["Game", "Game PC · Digital"]
+                ].map(([name, description]) => <button className="quick-cat-card" key={name} onClick={() => { setCategory(name); scrollTo("produk"); }}><span className={`quick-cat-icon tone-${name.toLowerCase()}`}><CategoryQuickIcon category={name} /></span><span className="quick-cat-copy"><b>{name}</b><small>{description}</small></span></button>)}
               </div>
             </div>
           </div>
         </section>
 
-        <nav className="container category-link-strip" aria-label="Halaman kategori software">
+        <nav className="container category-link-strip" aria-label="Halaman kategori produk">
           <span>Jelajahi:</span>{productCategories.map((item) => <Link key={item.slug} href={getCategoryPath(item)}>{item.label}</Link>)}
         </nav>
 
         <section className="toolbar-section" id="produk">
           <div className="container toolbar-card">
-            <label className="search-box"><span><SearchIcon /></span><input ref={searchRef} aria-label="Cari aplikasi" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari software original..." /></label>
-            <select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="Pilih kategori"><option value="all">Semua Kategori</option><option value="Design">Design &amp; Grafis</option><option value="Engineering">Engineering &amp; 3D</option><option value="Video">Video &amp; Animation</option><option value="Office">Office &amp; Produksi</option><option value="Utility">System &amp; Utility</option></select>
+            <label className="search-box"><span><SearchIcon /></span><input ref={searchRef} aria-label="Cari aplikasi atau game" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari software atau game..." /></label>
+            <select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="Pilih kategori"><option value="all">Semua Kategori</option>{productCategories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
             <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="Urutkan produk"><option value="newest">Terbaru</option><option value="popular">Terpopuler</option><option value="price-low">Harga Termurah</option><option value="price-high">Harga Tertinggi</option></select>
           </div>
         </section>
 
         <section className="products-section">
-          <div className="container"><div className="section-header"><h2 id="catalog-heading" tabIndex={-1}>Katalog Software Premium <small>{filteredProducts.length} Software</small></h2></div><div className="products-grid">
+          <div className="container"><div className="section-header"><h2 id="catalog-heading" tabIndex={-1}>Katalog Produk Digital <small>{filteredProducts.length} Produk</small></h2></div><div className="products-grid">
             {visibleProducts.map((product) => <ProductCard key={product.id} product={product} onDetail={setSelectedProduct} onBuy={buyProduct} />)}
           </div>
-            {filteredProducts.length === 0 && <p className="empty-state">Tidak ada aplikasi yang cocok. Coba kata kunci atau kategori lain.</p>}
+            {filteredProducts.length === 0 && <p className="empty-state">Tidak ada produk yang cocok. Coba kata kunci atau kategori lain.</p>}
             <div className="catalog-pagination">
-              <p role="status">{filteredProducts.length ? `Menampilkan ${pageStart + 1}–${Math.min(pageStart + pageSize, filteredProducts.length)} dari ${filteredProducts.length} aplikasi` : "Menampilkan 0 aplikasi"}</p>
+              <p role="status">{filteredProducts.length ? `Menampilkan ${pageStart + 1}–${Math.min(pageStart + pageSize, filteredProducts.length)} dari ${filteredProducts.length} produk` : "Menampilkan 0 produk"}</p>
               {pageCount > 1 && <nav aria-label="Halaman katalog" className="catalog-page-controls">
                 <button type="button" disabled={currentPage === 1} onClick={() => changeCatalogPage(currentPage - 1)} aria-label="Halaman sebelumnya">← <span>Sebelumnya</span></button>
                 {pageNumbers.map((page, index) => <span className="catalog-page-item" key={page}>

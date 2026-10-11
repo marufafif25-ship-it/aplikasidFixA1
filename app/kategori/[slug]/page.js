@@ -52,7 +52,7 @@ export default async function CategoryPage({ params }) {
   const products = allProducts.filter((product) => product.category === category.value);
   const breadcrumbData = createBreadcrumbStructuredData(SITE_URL, [
     { name: "Beranda", path: "/" },
-    { name: "Kategori software", path: "/kategori" },
+    { name: "Kategori produk", path: "/kategori" },
     { name: category.label, path: getCategoryPath(category) }
   ]);
 
@@ -61,7 +61,7 @@ export default async function CategoryPage({ params }) {
     <main className="catalog-seo-page">
       <div className="container">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbData) }} />
-        <nav className="catalog-breadcrumbs" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span aria-hidden="true">/</span><Link href="/kategori">Kategori software</Link><span aria-hidden="true">/</span><span>{category.label}</span></nav>
+        <nav className="catalog-breadcrumbs" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span aria-hidden="true">/</span><Link href="/kategori">Kategori produk</Link><span aria-hidden="true">/</span><span>{category.label}</span></nav>
         <header className="catalog-page-hero">
           <span className="catalog-page-eyebrow">{products.length} PRODUK DALAM KATEGORI</span>
           <h1>{category.title}</h1>
@@ -70,14 +70,14 @@ export default async function CategoryPage({ params }) {
         </header>
 
         <section className="catalog-page-section" aria-labelledby="category-products-heading">
-          <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">PILIHAN PRODUK</span><h2 id="category-products-heading">Software {category.label}</h2></div></div>
+          <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">PILIHAN PRODUK</span><h2 id="category-products-heading">{category.value === "Game" ? "Pilihan game" : `Software ${category.label}`}</h2></div></div>
           {products.length ? <div className="seo-products-grid">{products.map((product) => <CatalogProductCard key={product.id} product={product} />)}</div> : <p className="catalog-page-empty">Belum ada produk di kategori ini. Hubungi CS untuk informasi produk yang sedang tersedia.</p>}
         </section>
 
         <section className="category-help-section" aria-labelledby="category-checklist-heading">
           <span className="catalog-page-eyebrow">SEBELUM MEMILIH</span>
-          <h2 id="category-checklist-heading">Cara memeriksa kecocokan software</h2>
-          <p>{category.description} Gunakan daftar berikut untuk menyaring pilihan dan mengurangi risiko salah versi.</p>
+          <h2 id="category-checklist-heading">Cara memeriksa kecocokan produk</h2>
+          <p>{category.description} Gunakan daftar berikut untuk memastikan produk sesuai dengan perangkat dan kebutuhan Anda.</p>
           <ul>{category.checklist.map((item) => <li key={item}>{item}</li>)}</ul>
           <Link className="catalog-page-button" href="/panduan">Buka panduan instalasi <span aria-hidden="true">→</span></Link>
         </section>

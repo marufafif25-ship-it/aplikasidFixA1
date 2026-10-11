@@ -9,9 +9,9 @@ import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFoot
 const STORAGE_KEY = "aplikasiid_products";
 const PAGE_SIZE = 15;
 const defaultHeroSettings = {
-  title: "Kebutuhan Software",
-  titleLineTwo: "untuk Kuliah hingga Kerja",
-  description: "Temukan pilihan software untuk mengerjakan tugas, mengolah data penelitian, membuat desain, dan mendukung pekerjaan sehari-hari.",
+  title: "Software & Game",
+  titleLineTwo: "untuk Kerja hingga Hiburan",
+  description: "Temukan software dan game untuk mengerjakan tugas, mengolah data, membuat desain, dan menikmati hiburan digital.",
   primaryLabel: "Mulai Belanja",
   primaryTarget: "produk",
   secondaryLabel: "Cek Pesanan",
@@ -373,8 +373,8 @@ export default function AdminPage() {
         <div className="admin-section-heading"><div><p className="admin-eyebrow">{editingId ? "EDIT PRODUK" : "TAMBAH PRODUK"}</p><h2>{editingId ? "Perbarui detail produk" : "Buat produk baru"}</h2></div>{editingId && <button className="admin-ghost" type="button" disabled={uploading} onClick={() => { setEditingId(null); setForm(emptyProduct); }}>Batal edit</button>}</div>
         <form className="admin-form" onSubmit={saveProduct}>
           <label>ID produk<input value={form.id} onChange={(event) => updateField("id", event.target.value)} placeholder="app-produk-baru" readOnly={Boolean(editingId)} required />{editingId && <small>ID produk membentuk URL halaman dan tidak dapat diubah setelah dibuat.</small>}</label>
-          <label>Nama produk<input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Nama software" required /></label>
-          <label>Kategori<select value={form.category} onChange={(event) => updateField("category", event.target.value)}><option>Design</option><option>Engineering</option><option>Video</option><option>Office</option><option>Utility</option></select></label>
+          <label>Nama produk<input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Nama software atau game" required /></label>
+          <label>Kategori<select value={form.category} onChange={(event) => updateField("category", event.target.value)}><option>Design</option><option>Engineering</option><option>Video</option><option>Office</option><option>Utility</option><option>Game</option></select></label>
           <label>Sistem operasi<input value={form.os} onChange={(event) => updateField("os", event.target.value)} placeholder="Win & Mac" /></label>
           <label className="admin-wide">Deskripsi unik produk<textarea value={form.description || ""} onChange={(event) => updateField("description", event.target.value)} placeholder="Jelaskan kegunaan produk ini, siapa yang terbantu, dan hal khusus yang perlu diketahui sebelum membeli." /></label>
           <label className="admin-wide">Kompatibilitas &amp; persyaratan<textarea value={form.compatibility || ""} onChange={(event) => updateField("compatibility", event.target.value)} placeholder="Tulis versi Windows/macOS, kebutuhan perangkat, atau batasan versi yang sudah diverifikasi." /></label>

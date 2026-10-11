@@ -5,23 +5,23 @@ import { getStorefront } from "../../lib/storefront-server";
 import { productCategories, getCategoryPath } from "../../lib/catalog-seo.mjs";
 
 export const metadata = {
-  title: "Kategori Software Kuliah, Desain & Kerja | Aplikasi.id",
-  description: "Jelajahi kategori software desain, engineering, video, office, dan utility. Bandingkan produk, versi, sistem operasi, serta spesifikasinya.",
+  title: "Kategori Software & Game | Aplikasi.id",
+  description: "Jelajahi kategori desain, engineering, game, video, office, dan utility. Bandingkan produk, versi, sistem operasi, serta spesifikasinya.",
   alternates: { canonical: "/kategori" },
   openGraph: {
     type: "website",
     siteName: "Aplikasi.id",
     locale: "id_ID",
     url: "/kategori",
-    title: "Kategori Software Kuliah, Desain & Kerja | Aplikasi.id",
-    description: "Jelajahi kategori software desain, engineering, video, office, dan utility. Bandingkan produk, versi, sistem operasi, serta spesifikasinya.",
-    images: [{ url: "/opengraph-image", alt: "Kategori software Aplikasi.id" }]
+    title: "Kategori Software & Game | Aplikasi.id",
+    description: "Jelajahi kategori desain, engineering, game, video, office, dan utility. Bandingkan produk, versi, sistem operasi, serta spesifikasinya.",
+    images: [{ url: "/opengraph-image", alt: "Kategori produk Aplikasi.id" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kategori Software Kuliah, Desain & Kerja | Aplikasi.id",
-    description: "Jelajahi kategori software desain, engineering, video, office, dan utility.",
-    images: [{ url: "/twitter-image", alt: "Kategori software Aplikasi.id" }]
+    title: "Kategori Software & Game | Aplikasi.id",
+    description: "Jelajahi kategori desain, engineering, game, video, office, dan utility.",
+    images: [{ url: "/twitter-image", alt: "Kategori produk Aplikasi.id" }]
   }
 };
 
@@ -32,11 +32,11 @@ export default async function CategoryIndexPage() {
     <CatalogPageNav />
     <main className="catalog-seo-page">
       <div className="container">
-        <nav className="catalog-breadcrumbs" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span aria-hidden="true">/</span><span>Kategori software</span></nav>
+        <nav className="catalog-breadcrumbs" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span aria-hidden="true">/</span><span>Kategori produk</span></nav>
         <header className="catalog-page-hero">
           <span className="catalog-page-eyebrow">PILIH BERDASARKAN KEBUTUHAN</span>
-          <h1>Kategori Software</h1>
-          <p>Mulai dari kebutuhan desain dan analisis sampai produktivitas kerja. Buka kategori untuk membandingkan pilihan software, versi, kompatibilitas, dan spesifikasi produk.</p>
+          <h1>Kategori Produk Digital</h1>
+          <p>Jelajahi aplikasi, software, dan game untuk kebutuhan kerja, kreativitas, maupun hiburan. Buka kategori untuk memeriksa pilihan, platform, kompatibilitas, dan detail produk.</p>
         </header>
         <section aria-labelledby="category-list-heading">
           <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">JELAJAHI KATALOG</span><h2 id="category-list-heading">Pilih kategori</h2></div></div>
