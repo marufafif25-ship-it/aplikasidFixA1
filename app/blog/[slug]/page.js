@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import CatalogPageNav from "../../catalog-page-nav";
+import BlogRelatedProducts from "../related-products";
 import { createBlogPostingStructuredData, getBlogReadingTime } from "../../../lib/blog.mjs";
 import { getPublishedBlogPost, getPublishedBlogPosts } from "../../../lib/blog-server";
 import { createBreadcrumbStructuredData, serializeJsonLd, SITE_URL } from "../../../lib/seo.mjs";
@@ -53,10 +55,11 @@ export async function generateMetadata({ params }) {
 export default async function BlogArticlePage({ params }) {
   const { slug } = await params;
   await connection();
-  const post = await getPublishedBlogPost(slug);
+  const posts = await getPublishedBlogPosts();
+  const post = posts.find((item) => item.slug === slug);
   if (!post) notFound();
   const wasUpdatedAfterPublishing = post.publishedAt && post.updatedAt && Date.parse(post.updatedAt) > Date.parse(post.publishedAt);
-  const relatedPosts = (await getPublishedBlogPosts()).filter((item) => item.slug !== slug).slice(0, 3);
+  const relatedPosts = posts.filter((item) => item.slug !== slug).slice(0, 3);
   const articleUrl = `/blog/${post.slug}`;
   const breadcrumbData = createBreadcrumbStructuredData(SITE_URL, [
     { name: "Beranda", path: "/" },
@@ -80,6 +83,7 @@ export default async function BlogArticlePage({ params }) {
             {post.coverImageUrl && <img className="blog-reading-cover" src={post.coverImageUrl} alt={post.title} fetchPriority="high" />}
           </header>
           <div className="blog-reading-content"><ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown></div>
+          <Suspense fallback={null}><BlogRelatedProducts slug={slug} posts={posts} /></Suspense>
           <footer className="blog-reading-footer"><Link className="guide-text-link" href="/blog">← Kembali ke Blog</Link><Link className="catalog-page-button" href="/#produk">Lihat katalog software <span aria-hidden="true">→</span></Link></footer>
         </article>
         {relatedPosts.length > 0 && <section className="catalog-page-section blog-related-section" aria-labelledby="blog-related-heading">

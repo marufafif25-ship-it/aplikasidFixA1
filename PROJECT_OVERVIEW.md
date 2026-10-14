@@ -66,6 +66,8 @@ Data produk disimpan di products.data sebagai JSONB, dengan ID dan urutan terpis
 
 Artikel disimpan per baris di `blog_posts`. Halaman publik merender Markdown menjadi HTML di server, metadata dan `BlogPosting` JSON-LD dibuat per artikel, dan sitemap hanya memuat artikel terbit. Indeks Blog menampilkan 9 artikel per halaman melalui URL `?page=`. Terapkan `supabase/blog-posts.sql` setelah schema utama sebelum mengelola artikel dari `/adminn`. Migrasi `supabase/blog-views.sql` menambahkan kolom untuk total Views Google Analytics yang dimasukkan manual dari dashboard; nilai nol tidak ditampilkan ke publik.
 
+Blok **Produk terkait** di akhir 30 artikel awal memakai pemetaan slug ke ID produk di `lib/blog-product-links.mjs`. Nama dan ketersediaan produk mengikuti katalog aktif; panduan lanjutan hanya ditautkan bila artikelnya terbit. Blok dirender di server oleh `app/blog/related-products.js`, sehingga berlaku juga untuk artikel yang sudah tersimpan di Supabase tanpa migrasi atau penggantian isi Markdown. Tambahkan pemetaan saat membuat artikel baru atau mengganti ID produk. Jika katalog gagal dimuat, artikel tetap dapat dibaca.
+
 Dashboard memakai Supabase Auth. Role disimpan di admin_users; RLS database menjadi lapisan otorisasi selain pemeriksaan API. Upload gambar baru dilakukan dari sesi admin ke bucket Storage product-images. Gambar base64 lama masih ditangani route gambar khusus.
 
 ### Pembayaran dan unduhan
