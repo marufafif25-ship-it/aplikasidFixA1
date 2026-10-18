@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getCategoryByValue, getProductDescription, getProductPath } from "../lib/catalog-seo.mjs";
+import { getProductPlatform } from "../lib/product-presentation.mjs";
 
 const formatRp = (amount) => new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -24,12 +25,14 @@ function CatalogImage({ product }) {
 export default function CatalogProductCard({ product }) {
   const category = getCategoryByValue(product.category);
   const description = getProductDescription(product);
+  const platform = getProductPlatform(product);
   return <article className="seo-product-card">
     <Link className="seo-product-card-link" href={getProductPath(product)}>
       <div className="seo-product-card-image"><CatalogImage product={product} /></div>
       <div className="seo-product-card-body">
         <span className="catalog-page-eyebrow">{category?.label || product.category}</span>
         <h3>{product.title}</h3>
+        {platform && <span className="product-platform">{platform}</span>}
         <p>{description}</p>
         <div className="seo-product-card-footer">
           <strong>{formatRp(product.price)}</strong>

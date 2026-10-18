@@ -7,6 +7,7 @@ import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, Down
 import { getCheckoutUrl } from "../lib/checkout";
 import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
 import { productCategories, getProductPath } from "../lib/catalog-seo.mjs";
+import { getProductPlatform, getProductSearchText } from "../lib/product-presentation.mjs";
 import ChatWidget from "./chat-widget";
 
 const defaultHeroSettings = {
@@ -75,7 +76,7 @@ export default function Storefront({ initialData }) {
   const filteredProducts = useMemo(() => {
     const normalized = query.toLowerCase().trim();
     const result = productList.filter((product) => {
-      const matchesQuery = !normalized || `${product.title} ${product.category} ${product.versions}`.toLowerCase().includes(normalized);
+      const matchesQuery = !normalized || getProductSearchText(product).includes(normalized);
       return matchesQuery && (category === "all" || product.category === category);
     });
     if (sort === "popular") return [...result].sort((a, b) => b.sales - a.sales);
@@ -212,7 +213,25 @@ function CatalogImage(props) {
 
 function ProductCard({ product, onDetail, onBuy }) {
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-  return <article className="product-card"><div className={`card-artwork${product.catalogImageUrl ? " card-artwork-catalog" : ""}`}>{product.catalogImageUrl ? <CatalogImage className="card-catalog-image" src={product.catalogImageUrl} alt={`Katalog ${product.title}`} fill sizes="(max-width: 900px) 50vw, (max-width: 1100px) 25vw, 250px" /> : <><span className="thumbnail-watermark">PERMANEN! · Garansi</span><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><strong>{product.title.split("(")[0]}</strong><small>{product.versions.slice(0, 35)}...</small><span className="drive-badge-pill">Drive Direct</span></>}</div><div className="card-body"><div className="card-specs-pills">{product.specs.slice(0, 2).map((spec) => <span key={spec}>{spec}</span>)}</div><h3><Link href={getProductPath(product)}>{product.title}</Link></h3><div className="product-meta"><span>★ {product.rating}</span><i>·</i><span>{product.sales} terjual</span></div><div className="pricing-wrapper"><del>{formatRp(product.originalPrice)}</del><b>{formatRp(product.price)}</b><em>-{discount}%</em></div><button className="btn-card-detail" onClick={() => onDetail(product)}>Lihat Detail →</button><button className="btn-card-buy" onClick={() => onBuy(product)}>Beli Sekarang</button></div></article>;
+  const platform = getProductPlatform(product);
+  return <article className="product-card">
+    <div className={`card-artwork${product.catalogImageUrl ? " card-artwork-catalog" : ""}`}>
+      {product.catalogImageUrl ? <CatalogImage className="card-catalog-image" src={product.catalogImageUrl} alt={`Katalog ${product.title}`} fill sizes="(max-width: 900px) 50vw, (max-width: 1100px) 25vw, 250px" /> : <>
+        <span className="thumbnail-watermark">PERMANEN! · Garansi</span>
+        <div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div>
+        <strong>{product.title.split("(")[0]}</strong><small>{product.versions.slice(0, 35)}...</small><span className="drive-badge-pill">Drive Direct</span>
+      </>}
+    </div>
+    <div className="card-body">
+      <div className="card-specs-pills">{product.specs.slice(0, 2).map((spec) => <span key={spec}>{spec}</span>)}</div>
+      <h3><Link href={getProductPath(product)}>{product.title}</Link></h3>
+      {platform && <span className="product-platform">{platform}</span>}
+      <div className="product-meta"><span>★ {product.rating}</span><i>·</i><span>{product.sales} terjual</span></div>
+      <div className="pricing-wrapper"><del>{formatRp(product.originalPrice)}</del><b>{formatRp(product.price)}</b><em>-{discount}%</em></div>
+      <button className="btn-card-detail" onClick={() => onDetail(product)}>Lihat Detail →</button>
+      <button className="btn-card-buy" onClick={() => onBuy(product)}>Beli Sekarang</button>
+    </div>
+  </article>;
 }
 
 function ProductModal({ product, onClose, onBuy }) {
@@ -258,7 +277,18 @@ function ProductModal({ product, onClose, onBuy }) {
   };
 
   return <dialog ref={dialogRef} className="modal-container product-dialog" aria-labelledby={titleId} aria-modal="true" onCancel={(event) => { event.preventDefault(); onClose(); }} onPointerDown={(event) => { backdropStart.current = outsideDialog(event); }} onClick={(event) => { if (backdropStart.current && outsideDialog(event)) onClose(); backdropStart.current = false; }}>
-    <button type="button" className="modal-close" onClick={onClose} aria-label="Tutup detail produk"><CloseIcon /></button><div className="modal-product-head"><div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div><div><h2 id={titleId} ref={headingRef} tabIndex={-1}>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {product.os}</p></div></div><h3>Spesifikasi &amp; keunggulan</h3><ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul><div className="version-box">Versi tersedia: {product.versions}</div><div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div></dialog>;
+    <button type="button" className="modal-close" onClick={onClose} aria-label="Tutup detail produk"><CloseIcon /></button>
+    <div className="modal-product-head">
+      <div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div>
+      <div><h2 id={titleId} ref={headingRef} tabIndex={-1}>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {getProductPlatform(product)}</p></div>
+    </div>
+    {product.description?.trim() && <p className="modal-product-description">{product.description}</p>}
+    <h3>Isi dan fitur produk</h3>
+    <ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul>
+    <div className="version-box">Versi tersedia: {product.versions}</div>
+    {product.compatibility?.trim() && <section className="modal-product-compatibility"><h3>Kompatibilitas &amp; catatan sebelum membeli</h3><p>{product.compatibility}</p></section>}
+    <div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div>
+  </dialog>;
 }
 
 function InfoCard({ icon, title, text }) { return <article className="info-card"><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>; }

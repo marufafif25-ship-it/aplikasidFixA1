@@ -151,6 +151,25 @@ test("context excludes private product and customer fields", () => {
   assert.match(instruction, /https:\/\/wa.me\/628123456789/);
 });
 
+test("chat receives public product descriptions and purchase limitations with bounded context", () => {
+  const instruction = composeChatInstruction({ products: [
+    {
+      title: "GTA: San Andreas",
+      description: "Game versi klasik untuk Windows.",
+      compatibility: "Paket ini tidak dapat menyimpan progres permainan.",
+      privateNotes: "PRIVATE_ADMIN_NOTE"
+    },
+    { title: "Long product", description: "D".repeat(800), compatibility: "C".repeat(900) }
+  ] });
+  const reference = JSON.parse(instruction.slice(instruction.lastIndexOf("\n\n") + 2));
+
+  assert.equal(reference.products[0].description, "Game versi klasik untuk Windows.");
+  assert.match(reference.products[0].compatibility, /tidak dapat menyimpan progres/);
+  assert.equal(reference.products[1].description.length, 400);
+  assert.equal(reference.products[1].compatibility.length, 500);
+  assert.doesNotMatch(instruction, /PRIVATE_ADMIN_NOTE/);
+});
+
 test("limiter enforces concurrency and minute caps, and releases after errors", async () => {
   let time = 100000;
   const acquire = createChatLimiter({ limit: 2, concurrent: 1, now: () => time });
