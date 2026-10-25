@@ -19,7 +19,7 @@ Alur singkat:
 - Aplikasi Next.js yang dijalankan oleh npm run dev berada di app/ dan lib/.
 - File root index.html, app.js, styles.css, dan server.py adalah bagian aplikasi atau preview lama. File tersebut bukan entry point aplikasi Next.js saat ini.
 - SpreadsheetYangLama/, referensi/, dan sebagian scripts/ membantu migrasi atau pekerjaan pendukung; data katalog production dibaca dari Supabase.
-- CLAUDE.md hanya berisi @AGENTS.md, jadi instruksi bersama untuk Claude dan Codex ada di AGENTS.md.
+- CLAUDE.md mengimpor @AGENTS.md dan menyediakan pintu masuk panduan Claude. Ringkasan serah terima ada di HANDOFF_CLAUDE.md; rincian per bagian, konfigurasi, hasil pemeriksaan, dan peta file ada di docs/claude/. Instruksi bersama untuk Claude dan Codex tetap ada di AGENTS.md.
 - SQL migrasi database ada di supabase/. Petunjuk setup dan beberapa catatan operasional rinci ada di supabase/README.md; setup chat ada di CHAT_SETUP.md.
 
 Jangan mengubah file lama atau CSV sumber migrasi dengan asumsi itu akan mengubah situs aktif. Telusuri pemakaiannya dulu.
@@ -31,7 +31,8 @@ Jangan mengubah file lama atau CSV sumber migrasi dengan asumsi itu akan menguba
 | app/ | Halaman App Router, layout, komponen UI, dan API routes. |
 | app/api/ | Endpoint katalog/admin, pembelian, webhook Lynk, chat, dan gambar katalog lama. |
 | lib/ | Akses Supabase, logika katalog, checkout, chat, pembelian, unduhan, SEO, dan helper yang bisa diuji terpisah. |
-| assets/ | Logo dan aset statis yang dipakai situs. |
+| assets/ | Aset sumber/arsip dan input script pendukung. |
+| public/ | Aset statis runtime; URL /assets/... dilayani dari public/assets/. |
 | supabase/ | Skema dan migrasi SQL. Jalankan migrasi di project Supabase yang benar, bukan di build aplikasi. |
 | tests/ | Unit test Node.js menggunakan node:test. |
 | scripts/ | Ekspor/impor data dan utilitas pendukung. Periksa isi script sebelum menjalankannya karena sebagian memerlukan file atau environment tertentu. |
@@ -79,6 +80,8 @@ POST /api/webhook/lynk memeriksa X-Lynk-Signature, memvalidasi pembayaran paymen
 Admin memetakan items[].uuid dari Lynk ke product_downloads.lynk_item_id, judul, keterangan, dan URL Google Drive. POST /api/purchases menormalkan email (trim dan huruf kecil), membaca transaksi paid, membatasi hasil ke 10 transaksi per halaman, lalu menambahkan link hanya jika ID item cocok persis. Respons tidak di-cache.
 
 **Kebijakan akses yang penting:** /akun memakai email checkout sebagai satu-satunya bukti pencarian. Mengetahui email itu cukup untuk melihat hasil dan link unduhan; ini bukan verifikasi identitas. Implementasi API menggunakan server secret Supabase. Pertahankan pemahaman ini saat mengubah UX atau keamanan fitur.
+
+Toggle homepage.accountEnabled mengatur visibilitas navigasi, halaman /akun, dan arahan chat. Endpoint POST /api/purchases sendiri tidak memeriksa toggle tersebut dan tetap dapat dipanggil langsung.
 
 ### Chat bantuan
 
