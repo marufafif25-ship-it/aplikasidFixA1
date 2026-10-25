@@ -90,13 +90,13 @@ Nama, alias, lokasi pemakaian, dan cara memeriksa env tanpa menampilkan nilainya
 ## Hasil pemeriksaan dan pekerjaan yang perlu diketahui
 
 - `npm test`: **95 test lulus, 0 gagal** pada 22 Oktober 2026.
-- `npm run build`: **lulus**, Next.js 16.4.0 / React 19.2.8.
+- `npm run build`: **lulus**, Next.js 16.4.0 / React 19.2.8 (22 Oktober). Pada 25 Oktober 2026 lock dinaikkan ke Next 16.4.3 untuk menutup advisory critical; `npm test` 95/95 dan `npm run build` lulus lagi, `npm audit --omit=dev` 0 vulnerabilities.
 - `npm run lint`: **gagal** karena script `next lint` sudah tidak tersedia pada CLI terpasang. Belum ada konfigurasi linter pengganti dalam repo.
 - Dua pengujian RLS transaksi dan unduhan: **keduanya lulus** di PGlite terisolasi; rincian dan batas verifikasi ada di dokumen konfigurasi/status.
-- Domain canonical default `.com`, sedangkan contoh URL webhook di README memakai `.my.id`; periksa pengaturan Lynk/hosting sebelum mengubah domain atau deploy.
+- Domain: pemilik mengonfirmasi (25 Oktober 2026) bahwa `.com` dan `.my.id` sama-sama aktif dengan redirect satu ke yang lain. Canonical kode default `.com`; contoh URL webhook di README memakai `.my.id`. Arah redirect dan URL webhook persis di Lynk belum diperiksa; cek sebelum mengubah domain.
 - Limiter chat hanya per proses (20/menit, 3 bersamaan). Pencarian pembelian belum memiliki limiter aplikasi. Ini kondisi implementasi, bukan tugas perubahan yang otomatis diminta.
 - Upload yang tidak jadi disimpan dan gambar produk yang dihapus tidak otomatis dibersihkan dari Storage.
-- Tidak ada konfigurasi deploy/CI yang terdaftar di Git; jangan menebak provider hosting, kredensial admin, migrasi yang sudah diterapkan, kuota provider, atau kondisi production dari repo.
+- Hosting: pemilik mengonfirmasi **Vercel** (25 Oktober 2026). Tidak ada konfigurasi Vercel/CI di Git; env hosting, kredensial admin, migrasi yang sudah diterapkan, kuota provider, dan kondisi production tetap jangan ditebak dari repo. Perubahan dependency/kode baru berlaku setelah push + deploy Vercel.
 
 ## Bekerja dengan Claude gratis atau konteks kecil
 

@@ -32,7 +32,7 @@ Proyek ini adalah sumber penghasilan pemilik. Utamakan kelanjutan fitur dan kest
 ## Pemeriksaan perubahan
 
 - Setiap fitur baru wajib disertai unit test di `tests/`, memakai `node:test`. Jalankan test relevan; gunakan `npm test` untuk seluruh suite.
-- Untuk perubahan Next.js, baca panduan relevan di `node_modules/next/dist/docs/` lebih dahulu. Lock saat serah terima: Next 16.4.0, React 19.2.8. Jangan menganggap API dari ingatan cocok.
+- Untuk perubahan Next.js, baca panduan relevan di `node_modules/next/dist/docs/` lebih dahulu. Lock saat ini: Next 16.4.3 (upgrade keamanan 25 Oktober 2026), React 19.2.8. Jangan menganggap API dari ingatan cocok.
 - `npm run build` untuk pemeriksaan produksi lokal. Build berhasil belum memverifikasi integrasi hosting.
 - `npm run lint` saat snapshot masih rusak karena berisi `next lint`; jangan melaporkannya lulus. Perbaikan lint adalah pekerjaan tersendiri bila diperlukan.
 - Periksa `git status` dan jangan menimpa perubahan pemilik. Jangan otomatis mengimpor SQL, mengubah data produksi, deploy, push, atau mengirim pesan ke pelanggan hanya karena membaca panduan ini.

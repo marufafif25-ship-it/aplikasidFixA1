@@ -7,7 +7,7 @@ Snapshot lokal **22 Oktober 2026, Asia/Jakarta**, basis Git `294cc41`, branch `m
 | Komponen | Terpasang saat audit |
 | --- | --- |
 | Node.js / npm lokal | 24.21.0 / 11.19.0 |
-| Next.js | 16.4.0 |
+| Next.js | 16.4.3 (dinaikkan dari 16.4.0 pada 25 Okt 2026, advisory critical) |
 | React / React DOM | 19.2.8 / 19.2.8 |
 | Supabase JS | 2.117.0 |
 | react-markdown / remark-gfm | 10.1.0 / 4.0.1 |
@@ -84,7 +84,7 @@ Rincian kontrak dan RLS ada di [Backend dan data](BACKEND_DAN_DATA.md), langkah 
 | Pemeriksaan | Hasil saat serah terima | Batas |
 | --- | --- | --- |
 | `npm test` | **Lulus: 95/95**, gagal 0, skipped 0 | Menjalankan `tests/*.test.mjs`, umumnya memakai dependency tiruan. Dua file RLS di luar glob. |
-| `npm run build` | **Lulus**, Next.js 16.4.0 Turbopack | Kompilasi/prerender lokal. Bukan pengujian alur pembayaran, chat berbayar, atau akses admin production. |
+| `npm run build` | **Lulus**, Next.js 16.4.0 Turbopack; diulang lulus pada 16.4.3 (25 Okt 2026) | Kompilasi/prerender lokal. Bukan pengujian alur pembayaran, chat berbayar, atau akses admin production. |
 | `npm run lint` | **Gagal**, exit 1: `Invalid project directory .../lint` | Script masih `next lint`; CLI terpasang tidak mendukungnya. Belum diperbaiki dalam pekerjaan dokumentasi ini. |
 | `node tests/lynk-orders-rls.mjs` dengan `PGLITE_MODULE` | **Lulus**, exit 0 | Migrasi ulang, idempotensi, isolasi email/role dan penolakan akses yang tidak berhak pada PGlite lokal. |
 | `node tests/product-downloads-rls.mjs` dengan `PGLITE_MODULE` | **Lulus**, exit 0 | Migrasi ulang, izin admin, isolasi pelanggan/anon, batas keterangan dan akses server pada PGlite lokal. |

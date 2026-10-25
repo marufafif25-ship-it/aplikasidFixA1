@@ -196,7 +196,7 @@ Versi yang tersimpan dalam `package-lock.json` (lockfile v3) pada audit:
 
 | Paket | Versi lock | Deklarasi package.json |
 | --- | --- | --- |
-| Next.js | 16.4.0 | `latest` |
+| Next.js | 16.4.3 (dari 16.4.0, 25 Okt 2026) | `latest` |
 | React / React DOM | 19.2.8 / 19.2.8 | `latest` |
 | `@supabase/supabase-js` | 2.117.0 | `^2.117.0` |
 | `react-markdown` | 10.1.0 | `^10.1.0` |
