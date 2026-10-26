@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { SearchIcon, CloseIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, DownloadIcon } from "./icons";
+import { SearchIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, DownloadIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
 import { productCategories, getProductPath } from "../lib/catalog-seo.mjs";
@@ -63,7 +63,6 @@ export default function Storefront({ initialData }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [notice, setNotice] = useState("");
   const heroSettings = { ...defaultHeroSettings, ...initialData.homepage };
   const accountEnabled = isAccountFeatureEnabled(initialData.homepage);
@@ -106,7 +105,6 @@ export default function Storefront({ initialData }) {
   const buyProduct = (product) => {
     const checkoutUrl = getCheckoutUrl(product.buyUrl);
     if (!checkoutUrl) {
-      setSelectedProduct(null);
       setNotice("Link pembelian produk ini belum tersedia. Silakan hubungi CS melalui WhatsApp.");
       return;
     }
@@ -175,7 +173,7 @@ export default function Storefront({ initialData }) {
 
         <section className="products-section">
           <div className="container"><div className="section-header"><h2 id="catalog-heading" tabIndex={-1}>Katalog Produk Digital <small>{filteredProducts.length} Produk</small></h2></div><div className="products-grid">
-            {visibleProducts.map((product) => <ProductCard key={product.id} product={product} onDetail={setSelectedProduct} onBuy={buyProduct} />)}
+            {visibleProducts.map((product) => <ProductCard key={product.id} product={product} onBuy={buyProduct} />)}
           </div>
             {filteredProducts.length === 0 && <p className="empty-state">Tidak ada produk yang cocok. Coba kata kunci atau kategori lain.</p>}
             <div className="catalog-pagination">
@@ -198,7 +196,6 @@ export default function Storefront({ initialData }) {
 
       <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links">{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
       {notice && <div className="toast" role="status">{notice}</div>}
-      {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onBuy={buyProduct} />}
       <ChatWidget open={chatOpen} setOpen={setChatOpen} faqItems={faqItems} whatsapp={footerSettings.whatsapp} />
     </>
   );
@@ -211,7 +208,7 @@ function CatalogImage(props) {
   return <Image {...props} unoptimized={!local} loading="lazy" decoding="async" />;
 }
 
-function ProductCard({ product, onDetail, onBuy }) {
+function ProductCard({ product, onBuy }) {
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
   const platform = getProductPlatform(product);
   return <article className="product-card">
@@ -228,67 +225,10 @@ function ProductCard({ product, onDetail, onBuy }) {
       {platform && <span className="product-platform">{platform}</span>}
       <div className="product-meta"><span>★ {product.rating}</span><i>·</i><span>{product.sales} terjual</span></div>
       <div className="pricing-wrapper"><del>{formatRp(product.originalPrice)}</del><b>{formatRp(product.price)}</b><em>-{discount}%</em></div>
-      <button className="btn-card-detail" onClick={() => onDetail(product)}>Lihat Detail →</button>
+      <Link className="btn-card-detail" href={getProductPath(product)}>Lihat Detail <span aria-hidden="true">→</span></Link>
       <button className="btn-card-buy" onClick={() => onBuy(product)}>Beli Sekarang</button>
     </div>
   </article>;
-}
-
-function ProductModal({ product, onClose, onBuy }) {
-  const dialogRef = useRef(null);
-  const headingRef = useRef(null);
-  const titleId = useId();
-  const backdropStart = useRef(false);
-
-  useLayoutEffect(() => {
-    const dialog = dialogRef.current;
-    const opener = document.activeElement;
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-    const body = document.body;
-    const properties = ["position", "top", "left", "width", "overflow"];
-    const previousStyles = properties.map((name) => [name, body.style.getPropertyValue(name), body.style.getPropertyPriority(name)]);
-
-    // Lock the existing viewport before the browser focuses the native dialog.
-    body.style.position = "fixed";
-    body.style.top = `-${scrollY}px`;
-    body.style.left = `-${scrollX}px`;
-    body.style.width = "100%";
-    body.style.overflow = "hidden";
-    dialog.showModal();
-    headingRef.current?.focus({ preventScroll: true });
-    dialog.scrollTop = 0;
-
-    return () => {
-      dialog.close();
-      for (const [name, value, priority] of previousStyles) {
-        if (value) body.style.setProperty(name, value, priority);
-        else body.style.removeProperty(name);
-      }
-      window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
-      if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true });
-    };
-  }, []);
-
-  const outsideDialog = (event) => {
-    if (event.target !== event.currentTarget) return false;
-    const rect = event.currentTarget.getBoundingClientRect();
-    return event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
-  };
-
-  return <dialog ref={dialogRef} className="modal-container product-dialog" aria-labelledby={titleId} aria-modal="true" onCancel={(event) => { event.preventDefault(); onClose(); }} onPointerDown={(event) => { backdropStart.current = outsideDialog(event); }} onClick={(event) => { if (backdropStart.current && outsideDialog(event)) onClose(); backdropStart.current = false; }}>
-    <button type="button" className="modal-close" onClick={onClose} aria-label="Tutup detail produk"><CloseIcon /></button>
-    <div className="modal-product-head">
-      <div className="artwork-logo-box" style={{ background: product.color }}><CatalogImage src={product.imageUrl} alt="" width={62} height={62} sizes="62px" /></div>
-      <div><h2 id={titleId} ref={headingRef} tabIndex={-1}>{product.title}</h2><p>★ {product.rating} · {product.sales} terjual · {getProductPlatform(product)}</p></div>
-    </div>
-    {product.description?.trim() && <p className="modal-product-description">{product.description}</p>}
-    <h3>Isi dan fitur produk</h3>
-    <ul className="spec-list">{product.specs.map((spec) => <li key={spec}>✓ {spec}</li>)}</ul>
-    <div className="version-box">Versi tersedia: {product.versions}</div>
-    {product.compatibility?.trim() && <section className="modal-product-compatibility"><h3>Kompatibilitas &amp; catatan sebelum membeli</h3><p>{product.compatibility}</p></section>}
-    <div className="modal-price"><div><small>Harga spesial promo</small><strong>{formatRp(product.price)}</strong></div><button className="btn-primary" onClick={() => onBuy(product)}>Beli Sekarang</button></div>
-  </dialog>;
 }
 
 function InfoCard({ icon, title, text }) { return <article className="info-card"><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>; }

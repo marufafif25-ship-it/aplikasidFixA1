@@ -25,7 +25,9 @@
 .product-meta{min-height:18px;align-items:center}
 .pricing-wrapper{min-height:49px}
 .btn-card-detail,.btn-card-buy{min-height:36px;display:flex;align-items:center;justify-content:center;line-height:1.2}
-.btn-card-detail{border:1px solid #cbd9eb;background:#f8fbff;color:#2563eb}
+.btn-card-detail{border:1px solid #cbd9eb;background:#f8fbff;color:#2563eb;text-decoration:none;gap:4px}
+.btn-card-detail:hover{background:#e0edff}
+.btn-card-detail:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}
 .btn-card-buy{margin-top:7px}
 @media(max-width:560px){.card-body h3{min-height:32px}.pricing-wrapper{min-height:46px}.btn-card-detail,.btn-card-buy{min-height:34px;padding:8px 6px}}
 
