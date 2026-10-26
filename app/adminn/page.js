@@ -7,6 +7,8 @@ import { uploadProductImage } from "../../lib/product-image-upload";
 import { scrollAdminEditorIntoView } from "../../lib/admin-scroll.mjs";
 import { deleteAdminBlogPost, fetchAdminBlogPosts, saveAdminBlogPost } from "../../lib/blog-api";
 import { slugifyBlogTitle } from "../../lib/blog.mjs";
+import { defaultStoreProfile } from "../../lib/store-profile.mjs";
+import { productPurchaseFields, normalizeProductPurchaseFields } from "../../lib/product-purchase-info.mjs";
 import { getAdminUser, signOutAdmin, authenticateAdmin, deleteProduct, fetchFooterSettings, fetchHomepageSettings, fetchProducts, saveFooterSettings, saveHomepageSettings, saveProduct as saveRemoteProduct } from "../../lib/products-api";
 
 const STORAGE_KEY = "aplikasiid_products";
@@ -25,6 +27,7 @@ const defaultHeroSettings = {
   accountEnabled: false
 };
 const defaultFooterSettings = {
+  ...defaultStoreProfile,
   brand: "Aplikasi.id",
   description: "Pusat software terpercaya untuk kebutuhan kerja dan bisnis.",
   copyright: "© 2026. Semua hak dilindungi.",
@@ -42,6 +45,7 @@ const emptyProduct = {
   seoTitle: "",
   seoDescription: "",
   compatibility: "",
+  ...normalizeProductPurchaseFields(),
   price: 0,
   originalPrice: 0,
   rating: 5,
@@ -274,6 +278,7 @@ export default function AdminPage() {
     if (uploading) return;
     const product = {
       ...form,
+      ...normalizeProductPurchaseFields(form),
       id: form.id.trim() || `app-${Date.now()}`,
       title: form.title.trim(),
       price: Number(form.price) || 0,
@@ -466,9 +471,14 @@ export default function AdminPage() {
       </section>
 
       <section className="admin-editor admin-footer-editor">
-        <div className="admin-section-heading"><div><p className="admin-eyebrow">HOMEPAGE EDITOR</p><h2>Pengaturan footer</h2></div><span className="admin-editor-note">Konten bagian paling bawah toko</span></div>
+        <div className="admin-section-heading"><div><p className="admin-eyebrow">IDENTITAS TOKO</p><h2>Profil, kontak, dan footer</h2></div><span className="admin-editor-note">Tampil di footer, Tentang, Kontak, dan Garansi</span></div>
         <form className="admin-form" onSubmit={saveFooter}>
           <label>Nama brand<input value={footerSettings.brand} onChange={(event) => updateFooter("brand", event.target.value)} /></label>
+          <label>Nama pengelola<input value={footerSettings.operatorName || ""} onChange={(event) => updateFooter("operatorName", event.target.value)} placeholder="aplikasi_id" /></label>
+          <label className="admin-wide">Tentang toko<textarea value={footerSettings.aboutText || ""} onChange={(event) => updateFooter("aboutText", event.target.value)} /></label>
+          <label>Lokasi operasional (opsional)<input value={footerSettings.location || ""} onChange={(event) => updateFooter("location", event.target.value)} placeholder="Kota / wilayah yang boleh ditampilkan ke publik" /></label>
+          <label>Jam layanan CS (opsional)<input value={footerSettings.supportHours || ""} onChange={(event) => updateFooter("supportHours", event.target.value)} placeholder="Isi hari, jam, dan zona waktu layanan yang berlaku" /></label>
+          <label className="admin-wide">Ketentuan pengembalian dana<textarea value={footerSettings.refundPolicy || ""} onChange={(event) => updateFooter("refundPolicy", event.target.value)} placeholder="Isi ketentuan yang benar-benar berlaku. Jika kosong, pengunjung diarahkan bertanya kepada CS sebelum membayar." /></label>
           <label className="admin-wide">Deskripsi footer<textarea value={footerSettings.description} onChange={(event) => updateFooter("description", event.target.value)} /></label>
           <label className="admin-wide">Teks copyright<input value={footerSettings.copyright} onChange={(event) => updateFooter("copyright", event.target.value)} /></label>
           <label>URL WhatsApp<input type="url" value={footerSettings.whatsapp} onChange={(event) => updateFooter("whatsapp", event.target.value)} placeholder="https://wa.me/..." /></label>
@@ -487,6 +497,8 @@ export default function AdminPage() {
           <label>Sistem operasi<input value={form.os} onChange={(event) => updateField("os", event.target.value)} placeholder="Win & Mac" /></label>
           <label className="admin-wide">Deskripsi unik produk<textarea value={form.description || ""} onChange={(event) => updateField("description", event.target.value)} placeholder="Jelaskan kegunaan produk ini, siapa yang terbantu, dan hal khusus yang perlu diketahui sebelum membeli." /></label>
           <label className="admin-wide">Kompatibilitas &amp; persyaratan<textarea value={form.compatibility || ""} onChange={(event) => updateField("compatibility", event.target.value)} placeholder="Tulis versi Windows/macOS, kebutuhan perangkat, atau batasan versi yang sudah diverifikasi." /></label>
+          <p className="admin-wide admin-feature-help">Informasi pembelian berikut tampil di halaman produk. Isi sesuai penawaran; biarkan kosong jika belum dipastikan. Jangan masukkan kunci lisensi, kata sandi, atau link unduhan privat.</p>
+          {productPurchaseFields.map(({ key, label, placeholder }) => <label key={key}>{label}<textarea value={form[key] || ""} maxLength={1500} onChange={(event) => updateField(key, event.target.value)} placeholder={placeholder} /></label>)}
           <label>Judul SEO opsional<input value={form.seoTitle || ""} onChange={(event) => updateField("seoTitle", event.target.value)} placeholder="Otomatis memakai nama produk" /></label>
           <label className="admin-wide">Deskripsi SEO opsional<textarea value={form.seoDescription || ""} onChange={(event) => updateField("seoDescription", event.target.value)} placeholder="Ringkasan unik untuk hasil pencarian (sekitar 150 karakter)." /></label>
           <label>Harga jual<input type="number" min="0" value={form.price} onChange={(event) => updateField("price", event.target.value)} /></label>

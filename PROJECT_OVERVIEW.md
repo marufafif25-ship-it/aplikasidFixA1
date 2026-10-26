@@ -45,6 +45,7 @@ Jangan mengubah file lama atau CSV sumber migrasi dengan asumsi itu akan menguba
 | /kategori dan /kategori/[slug] | Indeks kategori dan landing page SEO. Slug/nama kategori didefinisikan di lib/catalog-seo.mjs. |
 | /blog dan /blog/[slug] | Indeks artikel dan halaman artikel SEO yang dikelola admin. Hanya artikel terbit yang dibuka untuk publik dan masuk sitemap. |
 | /produk/[id] | Detail produk; id produk menjadi bagian URL. |
+| /tentang, /kontak, /garansi | Identitas aplikasi_id, kontak resmi, serta informasi bantuan dan pengembalian. Konten mengikuti pengaturan footer. |
 | /panduan dan /panduan/[slug] | Pusat panduan. Isi panduan didefinisikan statis di lib/guides.js. |
 | /adminn | Dashboard admin. Ejaan route saat ini memang /adminn. |
 | /akun | Pencarian transaksi berdasarkan email checkout; hanya tampil saat homepage.accountEnabled aktif. |
@@ -66,6 +67,10 @@ app/page.js memuat katalog awal dari lib/storefront-server.js. Fungsi getStorefr
 Data produk disimpan di products.data sebagai JSONB, dengan ID dan urutan terpisah. Halaman produk/kategori mengambil data dari katalog yang sama. URL checkout tersimpan pada buyUrl; lib/checkout.js hanya mengizinkan URL HTTP(S) yang valid dan checkout berlangsung di Lynk.id, bukan diproses sendiri oleh aplikasi.
 
 Judul produk dibuat ringkas; sistem operasi ditampilkan terpisah pada kartu. Simpan kegunaan produk di `description`, pilihan versi di `versions`, serta batasan paket dan persyaratan di `compatibility`. Tombol Lihat Detail di beranda membuka halaman `/produk/[id]` yang menampilkan deskripsi, versi, kompatibilitas, dan fitur produk; alurnya sama dengan produk terkait di blog. `lib/product-presentation.mjs` menyamakan penulisan platform serta mempertahankan pencarian berdasarkan kegunaan, versi, dan isi paket setelah judul dipersingkat. Konteks chat hanya menerima deskripsi dan kompatibilitas publik dengan panjang terbatas.
+
+Informasi pembelian tambahan disimpan pada JSON produk: `licenseType`, `licenseDuration`, `deviceLimit`, `activationMethod`, `deliveryInfo`, dan `warrantyInfo`. Isian tersedia di dashboard, lalu ditampilkan sebagai teks di halaman produk. Field kosong tidak diisi dengan asumsi lisensi atau garansi; pengunjung diarahkan mengonfirmasi ketentuan yang belum tersedia kepada CS. Jangan menyimpan kunci lisensi, kredensial, atau link unduhan privat pada field publik ini. Tidak perlu migrasi SQL karena tetap memakai `products.data`.
+
+Identitas toko disimpan bersama pengaturan footer: `operatorName`, `aboutText`, `location`, `supportHours`, dan `refundPolicy`. Pengelola default adalah `aplikasi_id`; lokasi, jam layanan, dan kebijakan pengembalian hanya ditampilkan jika diisi. Kontak resmi mengikuti URL WhatsApp/TikTok footer yang sudah aktif. Halaman `/tentang`, `/kontak`, dan `/garansi` ada di route group `app/(informasi)/`, tertaut dari footer/halaman produk/blog/panduan, serta masuk sitemap. Data terstruktur identitas pada halaman Tentang memakai ID organisasi yang sama dengan layout utama. Jangan menganggap keberadaan sitemap sebagai bukti indeks; periksa laporan dan URL Inspection di Search Console untuk status terbaru.
 
 Artikel disimpan per baris di `blog_posts`. Halaman publik merender Markdown menjadi HTML di server, metadata dan `BlogPosting` JSON-LD dibuat per artikel, dan sitemap hanya memuat artikel terbit. Indeks Blog menampilkan 9 artikel per halaman melalui URL `?page=`. Terapkan `supabase/blog-posts.sql` setelah schema utama sebelum mengelola artikel dari `/adminn`. Migrasi `supabase/blog-views.sql` menambahkan kolom untuk total Views Google Analytics yang dimasukkan manual dari dashboard; nilai nol tidak ditampilkan ke publik.
 

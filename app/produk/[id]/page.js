@@ -4,6 +4,8 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import CatalogPageNav from "../../catalog-page-nav";
 import CatalogProductCard from "../../catalog-product-card";
+import ProductPurchaseDetails from "../../product-purchase-details";
+import StoreInformationLinks from "../../store-information-links";
 import { getCheckoutUrl } from "../../../lib/checkout";
 import {
   createProductStructuredData,
@@ -61,7 +63,8 @@ export async function generateMetadata({ params }) {
 export default async function ProductDetailPage({ params }) {
   const { id } = await params;
   await connection();
-  const product = await findProduct(id);
+  const { products, footer } = await getStorefront();
+  const product = products.find((item) => String(item.id) === id);
   if (!product) notFound();
 
   const category = getCategoryByValue(product.category);
@@ -73,7 +76,7 @@ export default async function ProductDetailPage({ params }) {
   const description = getProductDescription(product);
   const checkoutUrl = getCheckoutUrl(product.buyUrl);
   const relatedProducts = category
-    ? (await getStorefront()).products.filter((item) => item.category === product.category && item.id !== product.id).slice(0, 4)
+    ? products.filter((item) => item.category === product.category && item.id !== product.id).slice(0, 4)
     : [];
   const productData = createProductStructuredData({ product, description, canonicalUrl, siteUrl: SITE_URL, imageUrl });
   const breadcrumbData = createBreadcrumbStructuredData(SITE_URL, [
@@ -123,6 +126,8 @@ export default async function ProductDetailPage({ params }) {
           </section>
         </div>
 
+        <ProductPurchaseDetails product={product} whatsapp={footer.whatsapp} />
+
         {product.specs?.length > 0 && <section className="product-detail-features" aria-labelledby="product-features-heading">
           <span className="catalog-page-eyebrow">RINGKASAN PRODUK</span>
           <h2 id="product-features-heading">Fitur dan informasi pada katalog</h2>
@@ -141,6 +146,7 @@ export default async function ProductDetailPage({ params }) {
           <div className="seo-products-grid">{relatedProducts.map((item) => <CatalogProductCard key={item.id} product={item} />)}</div>
         </section>}
         <p className="catalog-page-note">Lihat pilihan lain di <Link href={categoryPath}>kategori {categoryLabel}</Link> atau <Link href="/kategori">semua kategori produk</Link>.</p>
+        <StoreInformationLinks />
       </div>
     </main>
   </>;

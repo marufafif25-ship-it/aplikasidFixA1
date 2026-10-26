@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { getStorefront } from "../../lib/storefront-server";
 import { isAccountFeatureEnabled } from "../../lib/account-feature.mjs";
+import StoreInformationLinks from "../store-information-links";
 import "./panduan.css";
 
 export default async function GuideLayout({ children }) {
@@ -27,6 +28,7 @@ export default async function GuideLayout({ children }) {
     <footer className="guide-footer guide-container">
       <div><strong>Aplikasi.id</strong><p>Software untuk kebutuhan kerja dan bisnismu.</p></div>
       <nav aria-label="Navigasi footer"><Link href="/#produk">Katalog software</Link><Link href="/panduan">Pusat bantuan</Link>{accountEnabled && <Link href="/akun">Akun Saya</Link>}</nav>
+      <StoreInformationLinks />
       <small>© {new Date().getFullYear()} Aplikasi.id</small>
     </footer>
   </div>;

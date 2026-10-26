@@ -1,6 +1,7 @@
 .catalog-seo-page{padding:20px 0 68px;color:var(--ink)}
 .catalog-seo-page .container{max-width:1100px}
 .catalog-brand-link{text-decoration:none}
+.navbar .nav-link{text-decoration:none}
 .catalog-nav-cta{display:inline-flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;color:var(--navy);font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}
 .catalog-nav-cta:hover{border-color:#9db9e9;color:var(--blue)}
 .catalog-breadcrumbs{display:flex;align-items:center;gap:10px;min-height:40px;margin-bottom:18px;color:#7b899d;font-size:11px;overflow-wrap:anywhere}
@@ -66,6 +67,34 @@
 .product-detail-features ul{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0 0;padding:0;list-style:none}
 .product-detail-features li{padding:8px 11px;border:1px solid #dce8f8;border-radius:8px;background:#f5f8fd;color:#43546d;font-size:11px;font-weight:700}
 .product-version-help{margin-top:20px}
+.store-information-links{display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap;margin-top:22px}
+.store-information-links a,.purchase-detail-actions>a:not(.catalog-page-button){color:var(--blue);font-size:12px;font-weight:700;text-decoration:none}
+.store-information-links a:hover,.purchase-detail-actions>a:not(.catalog-page-button):hover{text-decoration:underline;text-underline-offset:3px}
+.store-information-links a:focus-visible,.purchase-detail-actions a:focus-visible{outline:3px solid #60a5fa;outline-offset:4px;border-radius:4px}
+.footer .store-information-links{margin:0;gap:10px 16px}
+.footer .store-information-links a{font-size:11px}
+.product-purchase-details h3{margin:0 0 6px;color:var(--navy);font-size:13px}
+.product-purchase-details p,.store-refund-policy p{color:#5e6d82;font-size:12px;line-height:1.85;overflow-wrap:anywhere;white-space:pre-line}
+.purchase-detail-list,.store-profile-list{margin:18px 0}
+.purchase-detail-list>div{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.purchase-detail-list dt,.store-profile-list dt{font-size:12px;color:var(--navy);font-weight:800}
+.purchase-detail-list dd,.store-profile-list dd{margin:0;color:#5e6d82;font-size:12px;line-height:1.85;white-space:pre-line;overflow-wrap:anywhere}
+.purchase-delivery-note{margin-top:18px;padding:16px 18px;border:1px solid #dce8f8;border-radius:10px;background:#f5f8fd}
+.purchase-delivery-note p{margin:0}
+.purchase-confirmation-note{margin:18px 0 0}
+.purchase-detail-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px}
+.store-information-page .catalog-page-hero{max-width:850px}
+.store-information-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.store-information-grid .product-detail-panel{min-width:0}
+.store-information-grid .guide-text-link{display:inline-block;margin-top:16px;color:var(--blue);font-size:12px;font-weight:700;text-decoration:none}
+.store-information-grid .guide-text-link:hover{text-decoration:underline;text-underline-offset:3px}
+.store-information-grid .guide-text-link:focus-visible{outline:3px solid #60a5fa;outline-offset:4px}
+.store-profile-list>div{display:grid;gap:4px;margin-top:12px}
+.store-profile-list a{color:var(--blue)}
+.store-information-steps{padding-left:20px;margin:12px 0 0;color:#5e6d82;font-size:12px;line-height:1.9}
+.store-information-steps li+li{margin-top:12px}
+.store-information-grid p,.store-refund-policy p{white-space:pre-line}
+@media(max-width:620px){.store-information-grid{grid-template-columns:1fr;gap:14px}.purchase-detail-list>div{grid-template-columns:1fr;gap:5px}.purchase-detail-actions{align-items:flex-start;flex-direction:column}.purchase-detail-actions .catalog-page-button{width:100%}.store-information-links{gap:12px 16px}.footer .container{align-items:flex-start}.guide-footer .store-information-links{flex-wrap:wrap}}
 .product-card h3 a{color:inherit;text-decoration:none}
 .product-card h3 a:hover{color:#2563eb}
 .product-card h3 a:focus-visible,.seo-product-card-link:focus-visible,.category-hub-card:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}

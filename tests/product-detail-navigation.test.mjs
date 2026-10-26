@@ -22,6 +22,7 @@ const dependencies = {
   "next/link": ({ children, ...props }) => React.createElement("a", props, children),
   "./icons": new Proxy({}, { get: () => () => null }),
   "./chat-widget": () => null,
+  "./store-information-links": () => null,
   "../lib/checkout": { getCheckoutUrl: () => "https://lynk.id/checkout" },
   "../lib/account-feature.mjs": accountFeature,
   "../lib/catalog-seo.mjs": catalogSeo,

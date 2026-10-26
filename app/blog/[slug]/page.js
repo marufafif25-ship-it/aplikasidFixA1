@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import CatalogPageNav from "../../catalog-page-nav";
 import BlogRelatedProducts from "../related-products";
+import StoreInformationLinks from "../../store-information-links";
 import { createBlogPostingStructuredData, getBlogReadingTime } from "../../../lib/blog.mjs";
 import { getPublishedBlogPost, getPublishedBlogPosts } from "../../../lib/blog-server";
 import { createBreadcrumbStructuredData, serializeJsonLd, SITE_URL } from "../../../lib/seo.mjs";
@@ -86,6 +87,7 @@ export default async function BlogArticlePage({ params }) {
           <Suspense fallback={null}><BlogRelatedProducts slug={slug} posts={posts} /></Suspense>
           <footer className="blog-reading-footer"><Link className="guide-text-link" href="/blog">← Kembali ke Blog</Link><Link className="catalog-page-button" href="/#produk">Lihat katalog software <span aria-hidden="true">→</span></Link></footer>
         </article>
+        <StoreInformationLinks />
         {relatedPosts.length > 0 && <section className="catalog-page-section blog-related-section" aria-labelledby="blog-related-heading">
           <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">LANJUTKAN MEMBACA</span><h2 id="blog-related-heading">Artikel lainnya</h2></div><Link href="/blog">Semua artikel <span aria-hidden="true">→</span></Link></div>
           <div className="blog-related-grid">{relatedPosts.map((item) => <Link className="blog-related-card" href={`/blog/${item.slug}`} key={item.slug}><span className="blog-post-category">{item.category}</span><strong>{item.title}</strong><span>{item.excerpt}</span></Link>)}</div>

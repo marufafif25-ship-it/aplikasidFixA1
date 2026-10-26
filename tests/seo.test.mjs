@@ -21,6 +21,9 @@ test("sitemap includes the homepage, blog, categories, and published guide route
     "https://www.aplikasid.com/panduan",
     "https://www.aplikasid.com/blog",
     "https://www.aplikasid.com/kategori",
+    "https://www.aplikasid.com/tentang",
+    "https://www.aplikasid.com/kontak",
+    "https://www.aplikasid.com/garansi",
     "https://www.aplikasid.com/panduan/cara-membeli-software",
     "https://www.aplikasid.com/panduan/mengunduh-produk"
   ]);
@@ -34,6 +37,9 @@ test("sitemap includes dynamic category and product routes", () => {
     "https://www.aplikasid.com/panduan",
     "https://www.aplikasid.com/blog",
     "https://www.aplikasid.com/kategori",
+    "https://www.aplikasid.com/tentang",
+    "https://www.aplikasid.com/kontak",
+    "https://www.aplikasid.com/garansi",
     "https://www.aplikasid.com/kategori/engineering-3d",
     "https://www.aplikasid.com/produk/app-autocad",
     "https://www.aplikasid.com/produk/app-office"

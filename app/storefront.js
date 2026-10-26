@@ -9,6 +9,7 @@ import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
 import { productCategories, getProductPath } from "../lib/catalog-seo.mjs";
 import { getProductPlatform, getProductSearchText } from "../lib/product-presentation.mjs";
 import ChatWidget from "./chat-widget";
+import StoreInformationLinks from "./store-information-links";
 
 const defaultHeroSettings = {
   title: "Software & Game",
@@ -194,7 +195,7 @@ export default function Storefront({ initialData }) {
         <section className="help-section" id="bantuan"><div className="container"><h2>Butuh bantuan memilih software?</h2><p>Tim kami siap membantu menemukan paket yang sesuai kebutuhan kerja dan perangkat Anda.</p><div className="store-help-actions"><Link className="btn-primary" href="/panduan">Buka Pusat Bantuan →</Link><button className="store-help-contact" onClick={() => setChatOpen(true)}>Hubungi CS ↗</button></div></div></section>
       </main>
 
-      <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links">{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
+      <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links"><StoreInformationLinks />{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
       {notice && <div className="toast" role="status">{notice}</div>}
       <ChatWidget open={chatOpen} setOpen={setChatOpen} faqItems={faqItems} whatsapp={footerSettings.whatsapp} />
     </>

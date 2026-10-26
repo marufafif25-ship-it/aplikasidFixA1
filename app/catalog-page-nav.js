@@ -12,6 +12,7 @@ export default function CatalogPageNav() {
         <Link className="nav-link" href="/">Beranda</Link>
         <Link className="nav-link" href="/blog">Blog</Link>
         <Link className="nav-link" href="/panduan">Panduan</Link>
+        <Link className="nav-link" href="/tentang">Tentang</Link>
       </nav>
       <Link className="catalog-nav-cta" href="/#produk">Lihat katalog <span aria-hidden="true">→</span></Link>
     </div>
