@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import CatalogPageNav from "../../catalog-page-nav";
 import CatalogProductCard from "../../catalog-product-card";
 import ProductPurchaseDetails from "../../product-purchase-details";
+import ProductFaq from "../../product-faq";
 import StoreInformationLinks from "../../store-information-links";
 import { getCheckoutUrl } from "../../../lib/checkout";
 import {
@@ -140,6 +141,8 @@ export default async function ProductDetailPage({ params }) {
           <p>Daftar versi dan sistem operasi di halaman ini membantu penyaringan awal. Persyaratan prosesor, memori, kartu grafis, serta aktivasi bisa berbeda antarversi, jadi konfirmasi detail yang belum tercantum sebelum membeli.</p>
           <Link className="catalog-page-button" href="/panduan/memilih-versi-software">Baca panduan memilih versi <span aria-hidden="true">→</span></Link>
         </section>
+
+        <ProductFaq product={product} />
 
         {relatedProducts.length > 0 && <section className="catalog-page-section" aria-labelledby="related-products-heading">
           <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">KATEGORI {categoryLabel.toUpperCase()}</span><h2 id="related-products-heading">Produk terkait</h2></div><Link href={categoryPath}>Lihat semua <span aria-hidden="true">→</span></Link></div>

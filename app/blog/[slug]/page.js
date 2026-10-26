@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import CatalogPageNav from "../../catalog-page-nav";
 import BlogRelatedProducts from "../related-products";
+import BlogRelatedArticles from "../related-articles";
 import StoreInformationLinks from "../../store-information-links";
 import { createBlogPostingStructuredData, getBlogReadingTime } from "../../../lib/blog.mjs";
 import { getPublishedBlogPost, getPublishedBlogPosts } from "../../../lib/blog-server";
@@ -60,7 +61,6 @@ export default async function BlogArticlePage({ params }) {
   const post = posts.find((item) => item.slug === slug);
   if (!post) notFound();
   const wasUpdatedAfterPublishing = post.publishedAt && post.updatedAt && Date.parse(post.updatedAt) > Date.parse(post.publishedAt);
-  const relatedPosts = posts.filter((item) => item.slug !== slug).slice(0, 3);
   const articleUrl = `/blog/${post.slug}`;
   const breadcrumbData = createBreadcrumbStructuredData(SITE_URL, [
     { name: "Beranda", path: "/" },
@@ -88,10 +88,7 @@ export default async function BlogArticlePage({ params }) {
           <footer className="blog-reading-footer"><Link className="guide-text-link" href="/blog">← Kembali ke Blog</Link><Link className="catalog-page-button" href="/#produk">Lihat katalog software <span aria-hidden="true">→</span></Link></footer>
         </article>
         <StoreInformationLinks />
-        {relatedPosts.length > 0 && <section className="catalog-page-section blog-related-section" aria-labelledby="blog-related-heading">
-          <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">LANJUTKAN MEMBACA</span><h2 id="blog-related-heading">Artikel lainnya</h2></div><Link href="/blog">Semua artikel <span aria-hidden="true">→</span></Link></div>
-          <div className="blog-related-grid">{relatedPosts.map((item) => <Link className="blog-related-card" href={`/blog/${item.slug}`} key={item.slug}><span className="blog-post-category">{item.category}</span><strong>{item.title}</strong><span>{item.excerpt}</span></Link>)}</div>
-        </section>}
+        <BlogRelatedArticles post={post} posts={posts} />
       </div>
     </main>
   </>;
