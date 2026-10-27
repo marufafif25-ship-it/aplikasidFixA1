@@ -22,6 +22,7 @@ export function loadJsx(url, dependencies = {}) {
   const exports = {};
   runInNewContext(code, {
     exports,
+    URL,
     require: (name) => {
       if (Object.hasOwn(dependencies, name)) return dependencies[name];
       if (Object.hasOwn(defaults, name)) return defaults[name];

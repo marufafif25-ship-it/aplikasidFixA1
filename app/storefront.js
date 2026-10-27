@@ -6,7 +6,8 @@ import Link from "next/link";
 import { SearchIcon, BadgeCheckIcon, HeadsetIcon, LightningIcon, DownloadIcon } from "./icons";
 import { getCheckoutUrl } from "../lib/checkout";
 import { isAccountFeatureEnabled } from "../lib/account-feature.mjs";
-import { productCategories, getProductPath } from "../lib/catalog-seo.mjs";
+import { productCategories, getProductPath, isProductInCategory } from "../lib/catalog-seo.mjs";
+import { trackProductEvent } from "../lib/commerce-analytics.mjs";
 import { getProductPlatform, getProductSearchText } from "../lib/product-presentation.mjs";
 import ChatWidget from "./chat-widget";
 import StoreInformationLinks from "./store-information-links";
@@ -77,7 +78,7 @@ export default function Storefront({ initialData }) {
     const normalized = query.toLowerCase().trim();
     const result = productList.filter((product) => {
       const matchesQuery = !normalized || getProductSearchText(product).includes(normalized);
-      return matchesQuery && (category === "all" || product.category === category);
+      return matchesQuery && (category === "all" || isProductInCategory(product, category));
     });
     if (sort === "popular") return [...result].sort((a, b) => b.sales - a.sales);
     if (sort === "price-low") return [...result].sort((a, b) => a.price - b.price);
@@ -109,6 +110,7 @@ export default function Storefront({ initialData }) {
       setNotice("Link pembelian produk ini belum tersedia. Silakan hubungi CS melalui WhatsApp.");
       return;
     }
+    trackProductEvent("begin_checkout", product);
     window.location.assign(checkoutUrl);
   };
 
@@ -195,7 +197,7 @@ export default function Storefront({ initialData }) {
         <section className="help-section" id="bantuan"><div className="container"><h2>Butuh bantuan memilih software?</h2><p>Tim kami siap membantu menemukan paket yang sesuai kebutuhan kerja dan perangkat Anda.</p><div className="store-help-actions"><Link className="btn-primary" href="/panduan">Buka Pusat Bantuan →</Link><button className="store-help-contact" onClick={() => setChatOpen(true)}>Hubungi CS ↗</button></div></div></section>
       </main>
 
-      <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links"><StoreInformationLinks />{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
+      <footer className="footer"><div className="container"><div className="footer-brand"><strong>{footerSettings.brand}</strong><small>{footerSettings.description}</small></div><div className="footer-links"><Link href="/kategori">Kategori software</Link><Link href="/kategori/statistik-riset">Statistik &amp; Riset</Link><StoreInformationLinks />{footerSettings.whatsapp && <a href={footerSettings.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}{footerSettings.tiktok && <a href={footerSettings.tiktok} target="_blank" rel="noreferrer">TikTok</a>}<span>{footerSettings.copyright}</span></div></div></footer>
       {notice && <div className="toast" role="status">{notice}</div>}
       <ChatWidget open={chatOpen} setOpen={setChatOpen} faqItems={faqItems} whatsapp={footerSettings.whatsapp} />
     </>

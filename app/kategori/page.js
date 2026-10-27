@@ -2,11 +2,11 @@ import Link from "next/link";
 import { connection } from "next/server";
 import CatalogPageNav from "../catalog-page-nav";
 import { getStorefront } from "../../lib/storefront-server";
-import { productCategories, getCategoryPath } from "../../lib/catalog-seo.mjs";
+import { productCategories, getCategoryPath, isProductInCategory } from "../../lib/catalog-seo.mjs";
 
 export const metadata = {
   title: "Kategori Software & Game | Aplikasi.id",
-  description: "Jelajahi kategori desain, engineering, game, video, office, dan utility. Bandingkan produk, versi, sistem operasi, serta spesifikasinya.",
+  description: "Jelajahi software statistik dan riset, desain, engineering, game, video, office, dan utility. Bandingkan produk, versi, serta sistem operasinya.",
   alternates: { canonical: "/kategori" },
   openGraph: {
     type: "website",
@@ -14,13 +14,13 @@ export const metadata = {
     locale: "id_ID",
     url: "/kategori",
     title: "Kategori Software & Game | Aplikasi.id",
-    description: "Jelajahi kategori desain, engineering, game, video, office, dan utility. Bandingkan produk, versi, sistem operasi, serta spesifikasinya.",
+    description: "Jelajahi software statistik dan riset, desain, engineering, game, video, office, dan utility. Bandingkan produk, versi, serta sistem operasinya.",
     images: [{ url: "/opengraph-image", alt: "Kategori produk Aplikasi.id" }]
   },
   twitter: {
     card: "summary_large_image",
     title: "Kategori Software & Game | Aplikasi.id",
-    description: "Jelajahi kategori desain, engineering, game, video, office, dan utility.",
+    description: "Jelajahi software statistik dan riset, desain, engineering, game, video, office, dan utility.",
     images: [{ url: "/twitter-image", alt: "Kategori produk Aplikasi.id" }]
   }
 };
@@ -42,7 +42,7 @@ export default async function CategoryIndexPage() {
           <div className="catalog-page-section-heading"><div><span className="catalog-page-eyebrow">JELAJAHI KATALOG</span><h2 id="category-list-heading">Pilih kategori</h2></div></div>
           <div className="category-hub-grid">
             {productCategories.map((category) => {
-              const count = products.filter((product) => product.category === category.value).length;
+              const count = products.filter((product) => isProductInCategory(product, category)).length;
               return <Link className="category-hub-card" href={getCategoryPath(category)} key={category.slug}>
                 <span className="catalog-page-eyebrow">{count} produk</span>
                 <h2>{category.title}</h2>

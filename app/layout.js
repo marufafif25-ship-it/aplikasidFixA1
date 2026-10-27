@@ -2,6 +2,7 @@ import "./globals.css";
 import "./catalog-pages.css";
 import Script from "next/script";
 import MetaPixelPageViews from "./meta-pixel-page-views";
+import ContactAnalytics from "./commerce-analytics";
 import { META_PIXEL_ID } from "../lib/meta-pixel.mjs";
 import { createWebsiteStructuredData, serializeJsonLd, SITE_URL } from "../lib/seo.mjs";
 
@@ -55,6 +56,7 @@ gtag('config', '${GA_MEASUREMENT_ID}');`
         />
         {children}
         <MetaPixelPageViews />
+        <ContactAnalytics />
         <noscript>
           <img
             height="1"

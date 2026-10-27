@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import CatalogPageNav from "../../catalog-page-nav";
@@ -7,6 +8,9 @@ import CatalogProductCard from "../../catalog-product-card";
 import ProductPurchaseDetails from "../../product-purchase-details";
 import ProductFaq from "../../product-faq";
 import StoreInformationLinks from "../../store-information-links";
+import CatalogReadingLinks from "../../catalog-reading-links";
+import { ProductCheckoutLink, ProductViewAnalytics } from "../../commerce-analytics";
+import { getProductBuyingGuide } from "../../../lib/product-buying-guides.mjs";
 import { getCheckoutUrl } from "../../../lib/checkout";
 import {
   createProductStructuredData,
@@ -76,6 +80,8 @@ export default async function ProductDetailPage({ params }) {
   const imageUrl = getProductImage(product);
   const description = getProductDescription(product);
   const checkoutUrl = getCheckoutUrl(product.buyUrl);
+  const analyticsProduct = { id: product.id, title: product.title, category: product.category, price: product.price };
+  const buyingGuide = getProductBuyingGuide(product.id);
   const relatedProducts = category
     ? products.filter((item) => item.category === product.category && item.id !== product.id).slice(0, 4)
     : [];
@@ -90,6 +96,7 @@ export default async function ProductDetailPage({ params }) {
 
   return <>
     <CatalogPageNav />
+    <ProductViewAnalytics product={analyticsProduct} />
     <main className="catalog-seo-page product-detail-page">
       <div className="container">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(productData) }} />
@@ -107,7 +114,7 @@ export default async function ProductDetailPage({ params }) {
               {Number(product.originalPrice) > Number(product.price) && <del>{formatRp(product.originalPrice)}</del>}
             </div>
             {checkoutUrl
-              ? <a className="catalog-page-button product-buy-button" href={checkoutUrl} target="_blank" rel="noreferrer">Beli produk ini <span aria-hidden="true">↗</span></a>
+              ? <ProductCheckoutLink product={analyticsProduct} href={checkoutUrl}>Beli produk ini <span aria-hidden="true">↗</span></ProductCheckoutLink>
               : <Link className="catalog-page-button product-buy-button" href="/?chat=1#bantuan">Tanya ketersediaan ke CS <span aria-hidden="true">→</span></Link>}
             <p className="product-detail-purchase-note">Periksa versi dan dukungan perangkat di bawah ini sebelum checkout.</p>
           </div>
@@ -128,6 +135,17 @@ export default async function ProductDetailPage({ params }) {
         </div>
 
         <ProductPurchaseDetails product={product} whatsapp={footer.whatsapp} />
+
+        {buyingGuide && <>
+          <section className="category-help-section product-version-help" aria-labelledby="product-buying-guide-heading">
+            <span className="catalog-page-eyebrow">SESUAIKAN DENGAN KEBUTUHAN</span>
+            <h2 id="product-buying-guide-heading">{buyingGuide.heading}</h2>
+            <p>{buyingGuide.purpose}</p>
+            <ul>{buyingGuide.checklist.map((item) => <li key={item}>{item}</li>)}</ul>
+            <Link className="catalog-page-button" href="/?chat=1#bantuan">Tanya kecocokan ke CS <span aria-hidden="true">→</span></Link>
+          </section>
+          <Suspense fallback={null}><CatalogReadingLinks slugs={buyingGuide.articleSlugs} /></Suspense>
+        </>}
 
         {product.specs?.length > 0 && <section className="product-detail-features" aria-labelledby="product-features-heading">
           <span className="catalog-page-eyebrow">RINGKASAN PRODUK</span>

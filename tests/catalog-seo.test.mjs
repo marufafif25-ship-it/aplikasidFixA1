@@ -9,6 +9,7 @@ import {
   getProductMetaDescription,
   getProductMetaTitle,
   getProductPath,
+  isProductInCategory,
   productCategories
 } from "../lib/catalog-seo.mjs";
 
@@ -24,14 +25,26 @@ const product = {
 };
 
 test("category landing pages have stable, unique routes and copy", () => {
-  assert.equal(productCategories.length, 6);
-  assert.equal(new Set(productCategories.map(({ slug }) => slug)).size, 6);
+  assert.equal(productCategories.length, 7);
+  assert.equal(new Set(productCategories.map(({ slug }) => slug)).size, 7);
   assert.equal(getCategoryBySlug("engineering-3d").value, "Engineering");
   assert.equal(getCategoryByValue("Video").slug, "video-editing");
   assert.equal(getCategoryPath("Engineering"), "/kategori/engineering-3d");
   assert.equal(getCategoryBySlug("game").value, "Game");
   assert.equal(getCategoryPath("Game"), "/kategori/game");
   assert.match(getCategoryByValue("Game").description, /game PC/);
+});
+
+test("research collection includes existing statistics products without moving Office records", () => {
+  const spss = { id: "app-1790154210043", category: "Office" };
+  assert.equal(getCategoryPath("Research"), "/kategori/statistik-riset");
+  assert.equal(isProductInCategory(spss, "Research"), true);
+  assert.equal(isProductInCategory(spss, "Office"), true);
+  assert.equal(isProductInCategory({ id: "app-mendeley", category: "Utility" }, "Research"), true);
+  assert.equal(isProductInCategory({ id: "app-office", category: "Office" }, "Research"), false);
+  assert.equal(isProductInCategory({ category: "Research", id: "new-research-product" }, "Research"), true);
+  assert.equal(isProductInCategory(spss, "unknown"), false);
+  assert.equal(isProductInCategory(null, "Research"), false);
 });
 
 test("product URLs use stable product IDs, independent of display title", () => {
@@ -69,4 +82,13 @@ test("product structured data matches visible price and avoids fabricated rating
   assert.equal(data.offers.priceCurrency, "IDR");
   assert.equal(data.image, "https://www.aplikasid.com/assets/katalogAutocad.png");
   assert.equal("aggregateRating" in data, false);
+});
+
+test("missing prices do not create misleading free product offers", () => {
+  for (const price of [null, undefined, "", "  ", "unknown", -1, Infinity, false, true, []]) {
+    const data = createProductStructuredData({ product: { ...product, price }, siteUrl: "https://www.aplikasid.com" });
+    assert.equal("offers" in data, false, `invalid price: ${price}`);
+  }
+  const free = createProductStructuredData({ product: { ...product, price: 0 }, siteUrl: "https://www.aplikasid.com" });
+  assert.equal(free.offers.price, 0);
 });

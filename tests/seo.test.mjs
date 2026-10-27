@@ -57,7 +57,7 @@ test("sitemap includes published blog post routes and their last modified date",
 
 test("robots exposes the sitemap and keeps API routes out of crawling", () => {
   assert.deepEqual(createRobots("https://www.aplikasid.com"), {
-    rules: { userAgent: "*", allow: "/", disallow: "/api/" },
+    rules: { userAgent: "*", allow: ["/", "/api/product-image/"], disallow: "/api/" },
     sitemap: "https://www.aplikasid.com/sitemap.xml"
   });
 });

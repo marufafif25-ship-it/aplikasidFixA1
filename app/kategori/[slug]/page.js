@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import CatalogPageNav from "../../catalog-page-nav";
 import CatalogProductCard from "../../catalog-product-card";
+import CatalogReadingLinks from "../../catalog-reading-links";
 import { createBreadcrumbStructuredData, serializeJsonLd, SITE_URL } from "../../../lib/seo.mjs";
-import { productCategories, getCategoryBySlug, getCategoryPath } from "../../../lib/catalog-seo.mjs";
+import { productCategories, getCategoryBySlug, getCategoryPath, isProductInCategory } from "../../../lib/catalog-seo.mjs";
 import { getStorefront } from "../../../lib/storefront-server";
 
 export const dynamicParams = false;
@@ -49,7 +51,7 @@ export default async function CategoryPage({ params }) {
 
   await connection();
   const { products: allProducts } = await getStorefront();
-  const products = allProducts.filter((product) => product.category === category.value);
+  const products = allProducts.filter((product) => isProductInCategory(product, category));
   const breadcrumbData = createBreadcrumbStructuredData(SITE_URL, [
     { name: "Beranda", path: "/" },
     { name: "Kategori produk", path: "/kategori" },
@@ -83,6 +85,11 @@ export default async function CategoryPage({ params }) {
         </section>
 
         <p className="catalog-page-note">Mau membandingkan kategori lain? <Link href="/kategori">Lihat semua kategori software</Link>.</p>
+        {category.value === "Research" && <Suspense fallback={null}><CatalogReadingLinks slugs={[
+          "cara-menyiapkan-data-kuesioner-untuk-analisis-spss",
+          "cara-mengatur-variabel-di-spss-untuk-penelitian",
+          "cara-menata-referensi-skripsi-dengan-mendeley"
+        ]} /></Suspense>}
       </div>
     </main>
   </>;

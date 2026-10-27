@@ -127,6 +127,8 @@ Policy dasarnya memberi pembacaan katalog publik dan penulisan data katalog kepa
 
 Google Analytics dan Meta Pixel saat ini dikonfigurasi di source (app/layout.js, lib/meta-pixel.mjs), bukan lewat environment variable.
 
+SEO lanjutan: `lib/canonical-redirects.mjs` mengalihkan halaman publik domain lama ke domain kanonis dengan pengecualian API, sesi admin/akun, dan file verifikasi Google. Kategori `Research` pada `lib/catalog-seo.mjs` merupakan koleksi editorial berdasarkan ID, sehingga produk Office/Utility lama dapat tampil di `/kategori/statistik-riset` tanpa dipindahkan di database. Panduan pemilihan lima produk ada di `lib/product-buying-guides.mjs`; tautan artikel hanya ditampilkan bila terbit. Event GA4 `view_item`, `begin_checkout`, dan `contact_click` memakai field publik saja; klik checkout bukan transaksi lunas. Hasil pemeriksaan Google dan prosedur deployment/pengukuran ada di [docs/SEO_OPERATIONS.md](docs/SEO_OPERATIONS.md).
+
 ## Menjalankan dan memeriksa perubahan
 
 Perintah umum:
