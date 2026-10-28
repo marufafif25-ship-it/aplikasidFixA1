@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createChatHandler, createChatLimiter, composeChatInstruction, parseMessages, generateChatReply, finalChatContent, chatConfig } from "../lib/chat.mjs";
+import { createChatHandler, composeChatInstruction, parseMessages, generateChatReply, finalChatContent, chatConfig } from "../lib/chat.mjs";
 import { chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
 
 const messages = [{ role: "user", content: "Ada software desain untuk Windows?" }];
@@ -34,7 +34,7 @@ test("invalid Qwen configuration never sends credentials", async () => {
 });
 
 test("Qwen rate limits use neutral errors without leaking provider details", async () => {
-  const post = createChatHandler({ loadContext: async () => context, getConfig: () => ({ apiKey: "test", baseUrl: "https://ai.sumopod.com/v1" }), fetchImpl: async () => Response.json({ error: { message: "SECRET" } }, { status: 429 }) });
+  const post = createChatHandler({ loadContext: async () => context, getConfig: () => ({ apiKey: "test", baseUrl: "https://ai.sumopod.com/v1" }), sleepImpl: async () => {}, fetchImpl: async () => Response.json({ error: { message: "SECRET" } }, { status: 429 }) });
   const response = await post(request());
   assert.equal(response.status, 429);
   const text = await response.text();
@@ -44,6 +44,7 @@ const handler = (options = {}) => createChatHandler({
   loadContext: async () => context,
   getConfig: () => ({ apiKey: "test-key" }),
   fetchImpl: async () => Response.json({ choices: [{ message: { content: "Halo kak!" } }] }),
+  sleepImpl: async () => {},
   ...options,
 });
 
@@ -93,7 +94,80 @@ test("provider failures return actionable errors without leaking details", async
     assert.doesNotMatch(await response.text(), /secret/);
   }
   const limited = await handler({ fetchImpl: async () => Response.json({ error: { message: "daily limit" } }, { status: 429, headers: { "retry-after": "30" } }) })(request());
-  assert.match((await limited.json()).error, /Batas permintaan.*30 detik/);
+  assert.match((await limited.json()).error, /Layanan AI.*30 detik/);
+});
+
+test("brief provider throttling is retried automatically with the same payload and deadline", async () => {
+  const calls = [], waits = [];
+  const response = await handler({
+    fetchImpl: async (url, options) => {
+      calls.push({ url, ...options });
+      return calls.length === 1
+        ? Response.json({ error: { message: "busy" } }, { status: 429, headers: { "retry-after": "5" } })
+        : Response.json({ choices: [{ message: { content: "Halo kak!" } }] });
+    },
+    sleepImpl: async (ms, value, { signal }) => {
+      waits.push(ms);
+      assert.equal(signal, calls[0].signal);
+    },
+  })(request());
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { content: "Halo kak!" });
+  assert.deepEqual(waits, [5000]);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[1], calls[0]);
+});
+
+test("persistent throttling stops after two retries, including embedded provider errors", async () => {
+  for (const embedded of [false, true]) {
+    let calls = 0;
+    const waits = [];
+    const response = await handler({
+      fetchImpl: async () => {
+        calls++;
+        return Response.json({ error: { code: 429, message: "SECRET" } }, { status: embedded ? 200 : 429 });
+      },
+      sleepImpl: async (ms) => { waits.push(ms); },
+    })(request());
+    assert.equal(response.status, 429);
+    assert.doesNotMatch(await response.text(), /SECRET/);
+    assert.equal(calls, 3);
+    assert.deepEqual(waits, [1000, 2000]);
+  }
+});
+
+test("long provider cooldowns and other failures are returned without retrying", async () => {
+  for (const [status, retry] of [[429, "30"], [429, "Thu, 01 Jan 2099 00:00:00 GMT"], [401, "5"], [403, "5"], [500, "5"]]) {
+    let calls = 0;
+    const response = await handler({
+      fetchImpl: async () => {
+        calls++;
+        return Response.json({ error: { message: "SECRET" } }, { status, headers: { "retry-after": retry } });
+      },
+      sleepImpl: () => assert.fail("must not wait"),
+    })(request());
+    assert.equal(response.status, status === 429 ? 429 : status === 500 ? 502 : 503);
+    assert.equal(calls, 1);
+    assert.doesNotMatch(await response.text(), /SECRET/);
+  }
+});
+
+test("aborting during a provider cooldown prevents further requests", async () => {
+  const controller = new AbortController();
+  let calls = 0;
+  await assert.rejects(generateChatReply({
+    apiKey: "test", messages, instruction: "CS", signal: controller.signal,
+    fetchImpl: async () => {
+      calls++;
+      return Response.json({}, { status: 429, headers: { "retry-after": "5" } });
+    },
+    sleepImpl: async (ms, value, { signal }) => {
+      assert.equal(ms, 5000);
+      controller.abort();
+      assert.equal(signal.aborted, true);
+    },
+  }), { name: "AbortError" });
+  assert.equal(calls, 1);
 });
 
 test("assistant can answer general questions while grounding store-specific facts", () => {
@@ -170,19 +244,22 @@ test("chat receives public product descriptions and purchase limitations with bo
   assert.doesNotMatch(instruction, /PRIVATE_ADMIN_NOTE/);
 });
 
-test("limiter enforces concurrency and minute caps, and releases after errors", async () => {
-  let time = 100000;
-  const acquire = createChatLimiter({ limit: 2, concurrent: 1, now: () => time });
-  const release = acquire();
-  assert.throws(acquire, { status: 429 });
+test("chat accepts more than twenty requests without an application minute cap", async () => {
+  const post = handler();
+  for (let index = 0; index < 25; index++) {
+    assert.equal((await post(request())).status, 200);
+  }
+});
+
+test("chat accepts more than three concurrent visitors without an application cap", async () => {
+  let release;
+  const pending = new Promise((resolve) => { release = resolve; });
+  const post = handler({ loadContext: async () => { await pending; return context; } });
+  const requests = Array.from({ length: 6 }, () => post(request()));
   release();
-  acquire()();
-  assert.throws(acquire, { status: 429 });
-  time += 60000;
-  acquire()();
-  const post = handler({ acquire: createChatLimiter({ concurrent: 1 }), loadContext: async () => { throw new Error("failure"); } });
-  assert.equal((await post(request())).status, 502);
-  assert.equal((await post(request())).status, 502);
+  for (const response of await Promise.all(requests)) {
+    assert.equal(response.status, 200);
+  }
 });
 
 test("long client history preserves complete turns accepted by the API", () => {

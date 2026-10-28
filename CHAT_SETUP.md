@@ -50,10 +50,16 @@ pola analisis yang dikenali agar UI memakai FAQ cadangan. Filter pola ini bukan
 jaminan deteksi semua bentuk analisis dari setiap model.
 
 Backend membatasi pesan menjadi 4.000 karakter dan 19 pesan per permintaan,
-ukuran body 100 KB, serta waktu permintaan provider 60 detik. Pembatas lokal
-adalah 20 permintaan/menit dan 3 permintaan bersamaan per proses server;
-deployment dengan beberapa instance memerlukan limiter bersama di gateway
-untuk membatasi total trafik. Endpoint ini publik, tidak memakai login.
+ukuran body 100 KB, serta waktu total permintaan provider 60 detik, termasuk
+percobaan ulang. Aplikasi tidak membatasi jumlah permintaan per menit atau chat
+bersamaan. Endpoint ini publik, tidak memakai login.
+
+Jika provider mengembalikan HTTP 429 atau kode error 429, backend mencoba ulang
+otomatis maksimal dua kali untuk jeda hingga 10 detik. Header `Retry-After`
+diikuti jika tersedia; jika tidak valid atau tidak tersedia, jedanya 1 lalu
+2 detik. Jeda yang lebih panjang langsung ditampilkan sebagai error. Pembatalan
+permintaan juga membatalkan penantian. Batas dari akun atau layanan SumoPod tetap
+berlaku dan tidak dapat dihapus dari kode aplikasi.
 
 ## Verifikasi
 
@@ -63,5 +69,5 @@ npm run build
 ```
 
 Tes memakai provider tiruan untuk memeriksa respons, validasi, riwayat,
-pembatasan, dan kegagalan tanpa menghabiskan kuota. Verifikasi jawaban AI nyata
+chat bersamaan, percobaan ulang, dan kegagalan tanpa menghabiskan kuota. Verifikasi jawaban AI nyata
 memerlukan API key yang aktif.
