@@ -1,8 +1,10 @@
 # Chat CS AI
 
 Chat CS mengirim pesan ke `POST /api/chat`. Server menambahkan katalog publik,
-FAQ aktif dari Supabase, dan panduan toko sebagai konteks. Riwayat terbatas pada
-9 pasang pesan terakhir; percakapan hanya disimpan selama halaman terbuka.
+FAQ aktif dari Supabase, dan panduan toko sebagai konteks. Jumlah pertanyaan
+dalam percakapan tidak dibatasi. Riwayat yang dikirim ke AI memakai 9 pasang
+pesan terakhir agar percakapan panjang tetap dapat dilanjutkan; percakapan hanya
+disimpan selama halaman terbuka.
 
 ## Aktivasi
 

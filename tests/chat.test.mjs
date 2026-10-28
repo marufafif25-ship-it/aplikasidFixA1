@@ -271,6 +271,24 @@ test("long client history preserves complete turns accepted by the API", () => {
   assert.deepEqual(parseMessages({ messages: result }), result);
 });
 
+test("a conversation continues beyond ten questions using a rolling history", async () => {
+  let calls = 0;
+  const post = handler({ fetchImpl: async () => {
+    calls++;
+    return Response.json({ choices: [{ message: { content: "Jawaban" } }] });
+  } });
+  let history = [];
+  for (let turn = 1; turn <= 25; turn++) {
+    const outgoing = chatRequestMessages(history, `Pertanyaan ${turn}`);
+    assert.equal(outgoing.length, Math.min(turn * 2 - 1, 19));
+    assert.equal(outgoing.at(-1).content, `Pertanyaan ${turn}`);
+    const response = await post(request({ messages: outgoing }));
+    assert.equal(response.status, 200, `question ${turn} must be answered`);
+    history = [...outgoing, { role: "assistant", content: (await response.json()).content }];
+  }
+  assert.equal(calls, 25);
+});
+
 test("FAQ fallback handles exact questions and nonempty keywords", () => {
   const faq = [{ question: "Cara beli?", answer: "Pilih produk", keywords: "beli, order," }];
   assert.equal(findChatFaq(faq, "CARA BELI?"), faq[0]);
