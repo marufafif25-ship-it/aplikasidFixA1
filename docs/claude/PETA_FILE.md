@@ -33,7 +33,7 @@ Snapshot **22 Oktober 2026**. Inventaris awal Git berisi **236 file**; tabel di 
 | `.env.example` | Template nama env runtime dan alias lama; bukan key production. |
 | `.gitignore` | Abaikan env privat, dependency, build, output iklan dan CSV auth. |
 | `AGENTS.md` | Instruksi bersama, docs Next lokal, dan kewajiban unit test. |
-| `CHAT_SETUP.md` | Konfigurasi Qwen/SumoPod, fallback FAQ dan batas chat. |
+| `CHAT_SETUP.md` | Konfigurasi GPT-4o mini/SumoPod, fallback FAQ dan batas chat. |
 | `CLAUDE.md` | Pintu masuk Claude Code; impor AGENTS dan ringkasan aturan penting. |
 | `HANDOFF_CLAUDE.md` | Ringkasan mandiri untuk serah terima, urutan membaca dan prompt siap salin. |
 | `PROJECT_OVERVIEW.md` | Peta arsitektur/alur data lintas fitur. |

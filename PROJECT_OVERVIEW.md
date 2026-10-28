@@ -12,7 +12,7 @@ Alur singkat:
 - Pembeli → checkout eksternal Lynk.id → webhook Lynk → Next.js API → Supabase (transaksi)
 - Pembeli → /akun → Next.js API → transaksi dan pemetaan link unduhan
 - Admin → Supabase Auth → API admin atau Supabase Storage
-- Chat → Next.js API → Qwen melalui SumoPod
+- Chat → Next.js API → GPT-4o mini melalui SumoPod
 
 ## Source of truth dan batas repository
 
@@ -94,7 +94,7 @@ Toggle homepage.accountEnabled mengatur visibilitas navigasi, halaman /akun, dan
 
 ### Chat bantuan
 
-Widget chat berada di beranda. Server menambahkan katalog publik, FAQ aktif, dan panduan ke konteks model Qwen melalui endpoint OpenAI-compatible SumoPod. Kunci API hanya dibaca server. FAQ dapat menjadi fallback saat AI gagal. Aplikasi tidak membatasi jumlah permintaan per menit atau chat bersamaan. Respons 429 dari provider dengan jeda singkat dicoba ulang otomatis maksimal dua kali dalam waktu total 60 detik. Validasi, percobaan ulang, dan penanganan output model ada di lib/chat.mjs; konfigurasi aktivasi lebih rinci ada di CHAT_SETUP.md.
+Widget chat berada di beranda. Server menambahkan katalog publik, FAQ aktif, dan panduan ke konteks model GPT-4o mini melalui endpoint OpenAI-compatible SumoPod. Kunci API hanya dibaca server. FAQ dapat menjadi fallback saat AI gagal. Aplikasi tidak membatasi jumlah permintaan per menit atau chat bersamaan. Respons 429 dari provider dengan jeda singkat dicoba ulang otomatis maksimal dua kali dalam waktu total 60 detik. Validasi, percobaan ulang, dan penanganan output model ada di lib/chat.mjs; konfigurasi aktivasi lebih rinci ada di CHAT_SETUP.md.
 
 ### Database Supabase
 
@@ -121,8 +121,8 @@ Policy dasarnya memberi pembacaan katalog publik dan penulisan data katalog kepa
 | NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | Key publik untuk akses browser/server biasa; NEXT_PUBLIC_SUPABASE_ANON_KEY diterima sebagai nama lama. |
 | SUPABASE_SECRET_KEY | Akses server untuk webhook dan pencarian transaksi; SUPABASE_SERVICE_ROLE_KEY diterima sebagai nama lama. Rahasia. |
 | LYNK_MERCHANT_KEY | Validasi signature webhook Lynk. Rahasia. |
-| QWEN_API_KEY | Kredensial chat SumoPod. Rahasia. |
-| QWEN_MODEL, QWEN_BASE_URL | Model dan endpoint chat; default ada di lib/chat.mjs. |
+| SUMOPOD_API_KEY | Kredensial chat SumoPod. Rahasia. |
+| SUMOPOD_MODEL, SUMOPOD_BASE_URL | Model dan endpoint chat; default ada di lib/chat.mjs. |
 | NEXT_PUBLIC_SITE_URL | Origin kanonis untuk metadata dan sitemap; default di lib/seo.mjs adalah https://www.aplikasid.com. |
 
 Google Analytics dan Meta Pixel saat ini dikonfigurasi di source (app/layout.js, lib/meta-pixel.mjs), bukan lewat environment variable.

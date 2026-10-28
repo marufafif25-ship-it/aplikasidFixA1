@@ -6,20 +6,41 @@ import { chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
 const messages = [{ role: "user", content: "Ada software desain untuk Windows?" }];
 const request = (body = { messages }, headers = {}) => new Request("https://example.com/api/chat", { method: "POST", headers, body: JSON.stringify(body) });
 const context = { store: { products: [{ title: "Desain", price: 50000 }], faq: [] }, guides: [] };
-test("Qwen configuration selects SumoPod credentials and the requested model", () => {
-  assert.deepEqual(chatConfig({ QWEN_API_KEY: "test", QWEN_BASE_URL: "https://ai.sumopod.com/v1" }), {
-    apiKey: "test", model: "qwen3.7-flash-2026-07-15", baseUrl: "https://ai.sumopod.com/v1",
+test("SumoPod configuration defaults to GPT-4o mini", () => {
+  assert.deepEqual(chatConfig({ SUMOPOD_API_KEY: "test", SUMOPOD_BASE_URL: "https://ai.sumopod.com/v1" }), {
+    apiKey: "test", model: "gpt-4o-mini", baseUrl: "https://ai.sumopod.com/v1",
   });
-  assert.deepEqual(chatConfig({}), { apiKey: undefined, model: "qwen3.7-flash-2026-07-15", baseUrl: "https://ai.sumopod.com/v1" });
+  assert.deepEqual(chatConfig({}), { apiKey: undefined, model: "gpt-4o-mini", baseUrl: "https://ai.sumopod.com/v1" });
 });
 
-test("Qwen sends authenticated chat to SumoPod with thinking disabled", async () => {
+test("SumoPod variables take precedence while legacy Qwen configuration still works", () => {
+  const legacy = { QWEN_API_KEY: "legacy-key", QWEN_MODEL: "qwen3.7-flash-2026-07-15", QWEN_BASE_URL: "https://legacy.example/v1" };
+  assert.deepEqual(chatConfig(legacy), {
+    apiKey: "legacy-key", model: "qwen3.7-flash-2026-07-15", baseUrl: "https://legacy.example/v1",
+  });
+  assert.deepEqual(chatConfig({ ...legacy, SUMOPOD_API_KEY: " new-key ", SUMOPOD_MODEL: " gpt-4o-mini ", SUMOPOD_BASE_URL: " https://ai.sumopod.com/v1 " }), {
+    apiKey: "new-key", model: "gpt-4o-mini", baseUrl: "https://ai.sumopod.com/v1",
+  });
+  assert.deepEqual(chatConfig({ SUMOPOD_API_KEY: " ", SUMOPOD_MODEL: " ", SUMOPOD_BASE_URL: " " }), chatConfig({}));
+});
+
+test("explicit Qwen models retain their thinking parameter for legacy installations", async () => {
+  const result = await generateChatReply({ apiKey: "test", model: "qwen3.7-flash-2026-07-15", messages, instruction: "CS", fetchImpl: async (_url, options) => {
+    const body = JSON.parse(options.body);
+    assert.equal(body.model, "qwen3.7-flash-2026-07-15");
+    assert.equal(body.enable_thinking, false);
+    return Response.json({ choices: [{ message: { content: "Halo kak!" } }] });
+  } });
+  assert.equal(result, "Halo kak!");
+});
+
+test("GPT-4o mini sends authenticated chat without Qwen-specific parameters", async () => {
   const result = await generateChatReply({ baseUrl: "https://ai.sumopod.com/v1/", apiKey: " test ", messages, instruction: "CS", fetchImpl: async (url, options) => {
     assert.equal(url, "https://ai.sumopod.com/v1/chat/completions");
     assert.equal(options.headers.Authorization, "Bearer test");
     const body = JSON.parse(options.body);
-    assert.equal(body.model, "qwen3.7-flash-2026-07-15");
-    assert.equal(body.enable_thinking, false);
+    assert.equal(body.model, "gpt-4o-mini");
+    assert.equal(Object.hasOwn(body, "enable_thinking"), false);
     assert.equal(body.reasoning, undefined);
     assert.deepEqual(body.messages, [{ role: "system", content: "CS" }, ...messages]);
     return Response.json({ choices: [{ message: { content: "Halo kak!" }, finish_reason: "stop" }] });
@@ -27,13 +48,13 @@ test("Qwen sends authenticated chat to SumoPod with thinking disabled", async ()
   assert.equal(result, "Halo kak!");
 });
 
-test("invalid Qwen configuration never sends credentials", async () => {
+test("invalid chat configuration never sends credentials", async () => {
   for (const baseUrl of ["", "invalid", "http://ai.sumopod.com/v1", "https://user:pass@ai.sumopod.com/v1", "https://ai.sumopod.com/v1?key=x"]) {
     await assert.rejects(generateChatReply({ baseUrl, apiKey: "test", messages, instruction: "", fetchImpl: () => assert.fail("must not call provider") }), { status: 503 });
   }
 });
 
-test("Qwen rate limits use neutral errors without leaking provider details", async () => {
+test("SumoPod rate limits use neutral errors without leaking provider details", async () => {
   const post = createChatHandler({ loadContext: async () => context, getConfig: () => ({ apiKey: "test", baseUrl: "https://ai.sumopod.com/v1" }), sleepImpl: async () => {}, fetchImpl: async () => Response.json({ error: { message: "SECRET" } }, { status: 429 }) });
   const response = await post(request());
   assert.equal(response.status, 429);
@@ -48,13 +69,13 @@ const handler = (options = {}) => createChatHandler({
   ...options,
 });
 
-test("chat route sends public context and history to Qwen through SumoPod", async () => {
+test("chat route sends public context and history to GPT-4o mini through SumoPod", async () => {
   const response = await handler({ fetchImpl: async (url, options) => {
     assert.equal(url, "https://ai.sumopod.com/v1/chat/completions");
     assert.equal(options.headers.Authorization, "Bearer test-key");
     const body = JSON.parse(options.body);
-    assert.equal(body.model, "qwen3.7-flash-2026-07-15");
-    assert.equal(body.enable_thinking, false);
+    assert.equal(body.model, "gpt-4o-mini");
+    assert.equal(Object.hasOwn(body, "enable_thinking"), false);
     assert.equal(body.messages[0].role, "system");
     assert.match(body.messages[0].content, /Desain/);
     assert.deepEqual(body.messages.slice(1), messages);
@@ -81,7 +102,7 @@ test("cross-site requests are rejected before context loading", async () => {
   }
 });
 
-test("missing credentials and non-Qwen models cannot call provider", async () => {
+test("missing credentials and unsupported models cannot call provider", async () => {
   const post = handler({ getConfig: () => ({}), loadContext: () => assert.fail("must not load context") });
   assert.equal((await post(request())).status, 503);
   await assert.rejects(generateChatReply({ messages, instruction: "", apiKey: "test", model: "other-model", fetchImpl: () => assert.fail("must not call provider") }), { status: 503 });

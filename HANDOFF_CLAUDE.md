@@ -49,7 +49,7 @@ Admin -> /adminn -> Supabase Auth + admin_users
 
 Chat publik -> POST /api/chat
   -> katalog + FAQ + panduan publik
-  -> Qwen melalui endpoint SumoPod -> jawaban / fallback FAQ
+  -> GPT-4o mini melalui endpoint SumoPod -> jawaban / fallback FAQ
 ```
 
 Source of truth data aktif ada di Supabase. Repo menyimpan kode, definisi panduan, migrasi, seed artikel dan snapshot migrasi katalog. Membaca repo tidak mengunduh isi database atau membuktikan bahwa schema production sama dengan SQL lokal.

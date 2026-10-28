@@ -28,9 +28,9 @@ Nilai rahasia tidak disalin di sini. Status “terisi” hanya membuktikan ada n
 | `SUPABASE_SECRET_KEY` | Webhook, pencarian pembelian, daftar transaksi/pemetaan admin melalui client server | **Tidak ada; diperlukan untuk fitur transaksi nyata** |
 | `SUPABASE_SERVICE_ROLE_KEY` | Alias lama secret server, dipakai jika nama utama tidak ada | **Tidak ada** |
 | `LYNK_MERCHANT_KEY` | Verifikasi signature `POST /api/webhook/lynk` | Terisi |
-| `QWEN_API_KEY` | `lib/chat.mjs` melalui `app/api/chat/route.js`; server-only | Terisi |
-| `QWEN_MODEL` | Pemilihan model chat | Terisi; default kode `qwen3.7-flash-2026-07-15` |
-| `QWEN_BASE_URL` | Endpoint OpenAI-compatible untuk chat | Terisi; default kode `https://ai.sumopod.com/v1` |
+| `SUMOPOD_API_KEY` | `lib/chat.mjs` melalui `app/api/chat/route.js`; server-only | Terisi |
+| `SUMOPOD_MODEL` | Pemilihan model chat | Terisi; default kode `gpt-4o-mini` |
+| `SUMOPOD_BASE_URL` | Endpoint OpenAI-compatible untuk chat | Terisi; default kode `https://ai.sumopod.com/v1` |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL, metadata, sitemap di `lib/seo.mjs` | Tidak ada; fallback kode `https://www.aplikasid.com` |
 
 Variabel pendukung di luar runtime storefront:

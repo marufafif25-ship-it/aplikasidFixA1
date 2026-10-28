@@ -13,7 +13,7 @@ Lynk → POST /api/webhook/lynk → validasi signature → lynk_orders
 Admin → Supabase Auth → role admin_users → CRUD API / Storage
 Admin → product_downloads: ID item Lynk → judul, keterangan, link Drive
 Pembeli → /akun → POST /api/purchases → service Supabase → order paid + unduhan
-Pengunjung → POST /api/chat → katalog/FAQ/panduan publik → Qwen via SumoPod
+Pengunjung → POST /api/chat → katalog/FAQ/panduan publik → GPT-4o mini via SumoPod
 Pengunjung → /blog → query blog_posts terbit → Markdown + metadata/JSON-LD
 ```
 
@@ -54,9 +54,9 @@ Pengunjung → /blog → query blog_posts terbit → Markdown + metadata/JSON-LD
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client publik browser/server | Key publik; fallback nama lama `NEXT_PUBLIC_SUPABASE_ANON_KEY`. RLS wajib tetap benar. |
 | `SUPABASE_SECRET_KEY` | `serviceSupabase()` dan route webhook | Rahasia server; fallback nama lama `SUPABASE_SERVICE_ROLE_KEY`. Dapat melewati RLS, jangan kirim ke client. |
 | `LYNK_MERCHANT_KEY` | Route/helper webhook | Rahasia untuk signature Lynk. |
-| `QWEN_API_KEY` | `chatConfig(process.env)` di route chat | Rahasia server, dipakai header bearer provider. |
-| `QWEN_MODEL` | Chat | Default source `qwen3.7-flash-2026-07-15`. Validasi nama harus berawalan `qwen` dan pola karakter terbatas. |
-| `QWEN_BASE_URL` | Chat | Default source `https://ai.sumopod.com/v1`; harus HTTPS tanpa username/password/query/hash. |
+| `SUMOPOD_API_KEY` | `chatConfig(process.env)` di route chat | Rahasia server, dipakai header bearer provider. |
+| `SUMOPOD_MODEL` | Chat | Default source `gpt-4o-mini`. Menerima `gpt-4o-mini` atau nama legacy berawalan `qwen` dengan pola karakter terbatas. |
+| `SUMOPOD_BASE_URL` | Chat | Default source `https://ai.sumopod.com/v1`; harus HTTPS tanpa username/password/query/hash. |
 | `NEXT_PUBLIC_SITE_URL` | `lib/seo.mjs` | Origin canonical SEO, default `https://www.aplikasid.com`. |
 
 Gunakan `.env.example` sebagai nama/format konfigurasi. Restart dev server setelah mengganti env; isi env hosting secara terpisah. Memiliki file lokal tidak membuktikan env deployment sudah terisi. Untuk melanjutkan dari komputer yang sama Claude dapat menjalankan proyek memakai environment lokal tanpa menyalin nilainya ke berkas panduan.
@@ -209,7 +209,7 @@ Whitelist konteks model: 40 produk teratas berdasarkan kecocokan kata pesan user
 
 Instruksi model Bahasa Indonesia: fakta toko hanya dari referensi, maks 3 rekomendasi, cek kebutuhan/OS, arah pembelian katalog → checkout, ikuti metode checkout dan sarankan QRIS tanpa mengarang biaya, tidak mengaku memeriksa status pesanan. Akun Saya hanya direkomendasikan bila toggle true; kalau tidak ke WhatsApp. Pertanyaan umum/teknologi boleh dijawab dengan pengetahuan umum. Instruksi sumber/riwayat diperlakukan sebagai data, bukan aturan baru.
 
-Provider dipanggil ke `${QWEN_BASE_URL}/chat/completions` dengan bearer server, `enable_thinking: false`, `max_tokens: 1200`, system instruction + riwayat. Tidak ada streaming token ke browser. Timeout fetch provider 60 detik, digabung abort request; abort/timeout menjadi `504`. Endpoint default/model adalah nilai yang terlihat di source; ketersediaan, harga, akses key, dan kuota provider perlu dicek pada akun SumoPod jika ada masalah.
+Provider dipanggil ke `${SUMOPOD_BASE_URL}/chat/completions` dengan bearer server, `max_tokens: 1200`, system instruction + riwayat. `enable_thinking: false` hanya dikirim untuk model legacy Qwen. Tidak ada streaming token ke browser. Timeout fetch provider 60 detik, digabung abort request; abort/timeout menjadi `504`. Endpoint default/model adalah nilai yang terlihat di source; ketersediaan, harga, akses key, dan kuota provider perlu dicek pada akun SumoPod jika ada masalah.
 
 Respons sukses `200 { content }`, `Cache-Control: no-store`. `401/403` provider dipetakan `503`; `429` provider tetap `429` dan Retry-After numerik valid dapat dimasukkan ke pesan; error provider umum `502`; konfigurasi hilang/endpoint/model salah `503`; internal/load konteks error `502`. Detail error/kredensial provider tidak dikirim kembali.
 
@@ -330,7 +330,7 @@ Unit test helper tidak membuktikan route admin authorization end-to-end, revalid
 | Produk muncul tetapi tombol Drive tidak ada | UUID item harus persis mapping aktif; URL Drive lolos allowlist. Judul sama tidak cukup, webhook tidak membawa file URL. |
 | Link Drive terbuka tetapi akses ditolak | Atur izin berbagi file/folder di Drive; backend hanya memvalidasi URL, tidak memberi hak Google Drive. |
 | Produk tidak muncul di pilihan mapping admin | Batas 1.000 transaksi terbaru; mapping lama tetap muncul, UUID lain bisa diketik manual. |
-| Chat 503 | Qwen key/model/baseURL hosting, akses model di akun SumoPod; `403 key_model_access_denied` provider berarti key belum berizin. Tidak ada fallback model/provider lain. |
+| Chat 503 | SumoPod key/model/baseURL hosting, akses model di akun SumoPod; `403 key_model_access_denied` provider berarti key belum berizin. Tidak ada fallback model/provider lain. |
 | Chat 429 | Bisa limiter per proses bersama semua visitor atau rate limit provider; multiple instance tidak berbagi counter. |
 | Jawaban chat menjadi FAQ fallback | AI error/timeout/hasil kosong/hasil terpotong/flag reasoning; filter memang menolak output itu. FAQ lokal tetap bisa dipakai tanpa provider. |
 | Blog kosong padahal seed ada di Git | Seed tidak dipakai loader sebagai fallback; tabel/data harus dimigrasikan/diimpor ke project aktif, published harus true. |

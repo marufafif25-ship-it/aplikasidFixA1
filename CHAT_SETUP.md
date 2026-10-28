@@ -9,13 +9,13 @@ disimpan selama halaman terbuka.
 ## Aktivasi
 
 1. Buat API key di [SumoPod](https://ai.sumopod.com) dengan akses ke model
-   `qwen3.7-flash-2026-07-15`.
+   `gpt-4o-mini`.
 2. Tambahkan konfigurasi berikut ke `.env.local` atau environment server hosting:
 
    ```dotenv
-   QWEN_API_KEY=isi_key_anda
-   QWEN_MODEL=qwen3.7-flash-2026-07-15
-   QWEN_BASE_URL=https://ai.sumopod.com/v1
+   SUMOPOD_API_KEY=isi_key_anda
+   SUMOPOD_MODEL=gpt-4o-mini
+   SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
    ```
 
 3. Pastikan variabel Supabase pada `.env.example` sudah diisi agar konteks toko
@@ -23,9 +23,12 @@ disimpan selama halaman terbuka.
 4. Buka `/?chat=1`, tanyakan kebutuhan software, lalu kirim pertanyaan lanjutan.
 
 API key hanya dibaca di server; jangan gunakan awalan `NEXT_PUBLIC_` dan jangan
-commit `.env.local`. Hosting perlu diisi `QWEN_API_KEY` secara terpisah.
+commit `.env.local`. Hosting perlu diisi `SUMOPOD_API_KEY` secara terpisah.
 Model dan endpoint di atas digunakan sebagai default jika variabelnya kosong.
-Chatbot hanya memakai Qwen melalui endpoint OpenAI-compatible SumoPod.
+Chatbot memakai GPT-4o mini melalui endpoint OpenAI-compatible SumoPod.
+Variabel lama `QWEN_API_KEY`, `QWEN_MODEL`, dan `QWEN_BASE_URL` masih diterima
+sebagai fallback; variabel `SUMOPOD_*` diutamakan. Saat migrasi, isi ketiga
+variabel `SUMOPOD_*` di hosting agar model dan key lama tidak terpakai.
 FAQ tetap tersedia saat AI gagal merespons. Ketersediaan, biaya, dan kuota
 mengikuti akun SumoPod. Error `403 key_model_access_denied` menunjukkan key
 belum diizinkan memakai model yang dipilih.
@@ -46,7 +49,8 @@ menyediakan pertanyaan populer serta tautan WhatsApp dari pengaturan footer.
 Tombol FAQ tidak memanggil provider AI. Jika tidak ada FAQ yang cocok, pertanyaan
 dikembalikan ke kolom pesan untuk dicoba ulang. Error tidak masuk riwayat AI.
 
-Permintaan AI mengirim `enable_thinking: false`. Backend hanya membaca konten
+Permintaan GPT-4o mini tidak mengirim parameter khusus Qwen. Parameter
+`enable_thinking: false` hanya dikirim jika model Qwen dipilih secara eksplisit. Backend hanya membaca konten
 jawaban, menghapus blok thinking bertanda, serta menolak respons terpotong atau
 pola analisis yang dikenali agar UI memakai FAQ cadangan. Filter pola ini bukan
 jaminan deteksi semua bentuk analisis dari setiap model.
