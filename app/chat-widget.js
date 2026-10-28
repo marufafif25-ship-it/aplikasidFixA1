@@ -5,6 +5,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CHAT_INPUT_LIMIT, chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
 import { isOutsideChat } from "../lib/chat-widget.mjs";
+import { CHAT_LIMIT_MESSAGE, hasReachedChatLimit } from "../lib/chat-limits.mjs";
 
 export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   const [input, setInput] = useState("");
@@ -16,6 +17,7 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   const launcher = useRef(null);
   const widget = useRef(null);
   const history = useRef([]);
+  const sessionId = useRef(null);
   const inFlight = useRef(null);
   const messageList = useRef(null);
 
@@ -34,11 +36,11 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   }, [messages, pending, open]);
 
   function remember(text, reply) {
-    history.current = [...chatRequestMessages(history.current, text), { role: "assistant", content: reply.slice(0, CHAT_INPUT_LIMIT) }].slice(-18);
+    history.current = [...chatRequestMessages(history.current, text), { role: "assistant", content: reply.slice(0, CHAT_INPUT_LIMIT) }];
   }
 
   function askFaq(item) {
-    if (inFlight.current) return;
+    if (inFlight.current || hasReachedChatLimit(history.current)) return;
     setError("");
     setShowSuggestions(false);
     remember(item.question, item.answer);
@@ -48,7 +50,7 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   async function sendMessage(event) {
     event.preventDefault();
     const text = input.trim();
-    if (!text || text.length > CHAT_INPUT_LIMIT || inFlight.current) return;
+    if (!text || text.length > CHAT_INPUT_LIMIT || inFlight.current || hasReachedChatLimit(history.current)) return;
     const controller = new AbortController();
     inFlight.current = controller;
     const timeout = setTimeout(() => controller.abort(), 75000);
@@ -58,9 +60,10 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
     setInput("");
     setMessages((current) => [...current, { from: "user", text }]);
     try {
+      sessionId.current ||= crypto.randomUUID();
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Chat-Session": sessionId.current },
         body: JSON.stringify({ messages: chatRequestMessages(history.current, text) }),
         signal: controller.signal,
       });
@@ -93,6 +96,7 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
   }
 
   const suggestionLabels = { order: "Cara beli", warranty: "Garansi", payment: "Pembayaran" };
+  const limitReached = hasReachedChatLimit(history.current);
 
   return <div ref={widget} className={`chat-widget${open ? " is-open" : ""}`}>
     <button ref={launcher} hidden={open} className="chat-launcher" type="button" onClick={() => setOpen(true)} aria-expanded={open} aria-label="Buka chat CS">
@@ -107,10 +111,11 @@ export default function ChatWidget({ open, setOpen, faqItems, whatsapp }) {
         {pending && <p className="chat-message bot" role="status">Sedang menyiapkan jawaban…</p>}
       </div>
       {error && <p className="chat-error" role="alert">{error}</p>}
-      {faqItems.length > 0 && <div id={suggestionsId} className="chat-quick-actions" hidden={!showSuggestions} aria-label="Pertanyaan umum">{faqItems.slice(0, 3).map((item) => <button type="button" key={item.id} title={item.question} disabled={pending} onClick={() => askFaq(item)}>{suggestionLabels[item.id] || item.question}</button>)}</div>}
+      {limitReached && <p className="chat-error" role="status">{CHAT_LIMIT_MESSAGE}</p>}
+      {faqItems.length > 0 && <div id={suggestionsId} className="chat-quick-actions" hidden={!showSuggestions} aria-label="Pertanyaan umum">{faqItems.slice(0, 3).map((item) => <button type="button" key={item.id} title={item.question} disabled={pending || limitReached} onClick={() => askFaq(item)}>{suggestionLabels[item.id] || item.question}</button>)}</div>}
       <form className="chat-composer" onSubmit={sendMessage}>
-        <input value={input} maxLength={CHAT_INPUT_LIMIT} onChange={(event) => setInput(event.target.value)} placeholder="Tulis pertanyaanmu..." aria-label="Tulis pesan ke CS" />
-        <button type="submit" disabled={pending || !input.trim()} aria-label="Kirim pesan">→</button>
+        <input value={input} maxLength={CHAT_INPUT_LIMIT} disabled={limitReached} onChange={(event) => setInput(event.target.value)} placeholder={limitReached ? "Batas percakapan tercapai" : "Tulis pertanyaanmu..."} aria-label="Tulis pesan ke CS" />
+        <button type="submit" disabled={pending || limitReached || !input.trim()} aria-label="Kirim pesan">→</button>
       </form>
       <div className="chat-footer-actions">
         {faqItems.length > 0 && <button className="chat-suggestions-toggle" type="button" aria-expanded={showSuggestions} aria-controls={suggestionsId} onClick={() => setShowSuggestions((current) => !current)}>Pertanyaan umum <span aria-hidden="true">{showSuggestions ? "−" : "+"}</span></button>}

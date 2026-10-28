@@ -94,7 +94,7 @@ Toggle homepage.accountEnabled mengatur visibilitas navigasi, halaman /akun, dan
 
 ### Chat bantuan
 
-Widget chat berada di beranda. Server menambahkan katalog publik, FAQ aktif, dan panduan ke konteks model Qwen melalui endpoint OpenAI-compatible SumoPod. Kunci API hanya dibaca server. FAQ dapat menjadi fallback saat AI gagal. Batas, validasi, limiter lokal, dan penanganan output model ada di lib/chat.mjs; konfigurasi aktivasi lebih rinci ada di CHAT_SETUP.md.
+Widget chat berada di beranda. Server menambahkan katalog publik, FAQ aktif, dan panduan ke konteks model Qwen melalui endpoint OpenAI-compatible SumoPod. Kunci API hanya dibaca server. FAQ dapat menjadi fallback saat AI gagal. Percakapan dibatasi 10 pertanyaan terjawab per halaman; ID sesi acak memisahkan pembatas trafik antartab/perangkat, termasuk pada IP yang sama. Pembatas trafik lokal adalah 20 percobaan/menit dan 3 permintaan bersamaan per sesi per proses server. Batas, validasi, limiter lokal, dan penanganan output model ada di lib/chat.mjs; konfigurasi aktivasi lebih rinci ada di CHAT_SETUP.md.
 
 ### Database Supabase
 

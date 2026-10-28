@@ -1,8 +1,14 @@
 # Chat CS AI
 
 Chat CS mengirim pesan ke `POST /api/chat`. Server menambahkan katalog publik,
-FAQ aktif dari Supabase, dan panduan toko sebagai konteks. Riwayat terbatas pada
-9 pasang pesan terakhir; percakapan hanya disimpan selama halaman terbuka.
+FAQ aktif dari Supabase, dan panduan toko sebagai konteks. Setiap percakapan
+dibatasi 10 pertanyaan yang terjawab, termasuk pilihan FAQ; sapaan awal dan
+percobaan gagal tanpa jawaban tidak dihitung. Pesan ke-10 masih dijawab, lalu
+kolom pesan dan pilihan FAQ dinonaktifkan dengan arahan ke CS WhatsApp.
+Riwayat dan hitungan hanya disimpan selama halaman terbuka; menutup dan membuka
+widget tidak meresetnya. Memuat ulang halaman memulai percakapan baru.
+Setiap halaman memiliki ID sesi acak sendiri. Hitungan pada laptop A, laptop B,
+atau tab lain terpisah, termasuk saat memakai jaringan/IP yang sama.
 
 ## Aktivasi
 
@@ -50,10 +56,18 @@ pola analisis yang dikenali agar UI memakai FAQ cadangan. Filter pola ini bukan
 jaminan deteksi semua bentuk analisis dari setiap model.
 
 Backend membatasi pesan menjadi 4.000 karakter dan 19 pesan per permintaan,
-ukuran body 100 KB, serta waktu permintaan provider 60 detik. Pembatas lokal
-adalah 20 permintaan/menit dan 3 permintaan bersamaan per proses server;
-deployment dengan beberapa instance memerlukan limiter bersama di gateway
-untuk membatasi total trafik. Endpoint ini publik, tidak memakai login.
+ukuran body 100 KB, serta waktu permintaan provider 60 detik. Pembatas trafik
+adalah 20 percobaan/menit dan 3 permintaan bersamaan **per sesi**, disimpan lokal
+pada proses server. ID sesi UUID dikirim widget melalui header `X-Chat-Session`;
+header yang hilang atau tidak valid ditolak dengan status 400. Sesi tidak aktif
+dibersihkan setelah jendela satu menit berakhir; penyimpanan dibatasi 10.000 sesi
+per proses dan sesi baru menerima status 503 saat kapasitas ini penuh.
+Deployment dengan beberapa instance memerlukan penyimpanan bersama bila batas
+trafik per sesi harus konsisten antar-instance. Endpoint ini publik, tanpa login;
+ID sesi dari browser bukan bukti identitas dan dapat diganti oleh pemanggil API.
+API juga menolak riwayat yang memuat pertanyaan ke-11 dengan status 429.
+Batas percakapan mengikuti riwayat dari browser, bukan kuota akun yang persisten;
+pembatas trafik server dan kuota provider tetap dapat berlaku secara terpisah.
 
 ## Verifikasi
 

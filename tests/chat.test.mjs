@@ -2,9 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createChatHandler, createChatLimiter, composeChatInstruction, parseMessages, generateChatReply, finalChatContent, chatConfig } from "../lib/chat.mjs";
 import { chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
+import { CHAT_LIMIT_MESSAGE, hasReachedChatLimit } from "../lib/chat-limits.mjs";
 
 const messages = [{ role: "user", content: "Ada software desain untuk Windows?" }];
-const request = (body = { messages }, headers = {}) => new Request("https://example.com/api/chat", { method: "POST", headers, body: JSON.stringify(body) });
+const sessionA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const sessionB = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const sessionC = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+const request = (body = { messages }, headers = {}) => new Request("https://example.com/api/chat", { method: "POST", headers: { "x-chat-session": sessionA, ...headers }, body: JSON.stringify(body) });
 const context = { store: { products: [{ title: "Desain", price: 50000 }], faq: [] }, guides: [] };
 test("Qwen configuration selects SumoPod credentials and the requested model", () => {
   assert.deepEqual(chatConfig({ QWEN_API_KEY: "test", QWEN_BASE_URL: "https://ai.sumopod.com/v1" }), {
@@ -173,25 +177,116 @@ test("chat receives public product descriptions and purchase limitations with bo
 test("limiter enforces concurrency and minute caps, and releases after errors", async () => {
   let time = 100000;
   const acquire = createChatLimiter({ limit: 2, concurrent: 1, now: () => time });
-  const release = acquire();
-  assert.throws(acquire, { status: 429 });
+  const release = acquire(sessionA);
+  assert.throws(() => acquire(sessionA), { status: 429 });
+  acquire(sessionB)();
   release();
-  acquire()();
-  assert.throws(acquire, { status: 429 });
+  release();
+  const secondRelease = acquire(sessionA);
+  assert.throws(() => acquire(sessionA), { status: 429 });
+  secondRelease();
+  assert.throws(() => acquire(sessionA), { status: 429 });
   time += 60000;
-  acquire()();
+  acquire(sessionA)();
   const post = handler({ acquire: createChatLimiter({ concurrent: 1 }), loadContext: async () => { throw new Error("failure"); } });
   assert.equal((await post(request())).status, 502);
   assert.equal((await post(request())).status, 502);
 });
 
-test("long client history preserves complete turns accepted by the API", () => {
-  const history = Array.from({ length: 40 }, (_, index) => ({ role: index % 2 ? "assistant" : "user", content: "x".repeat(5000) }));
+test("API traffic limits are separate for sessions even on the same network", async () => {
+  const post = handler({ acquire: createChatLimiter({ limit: 10 }) });
+  const send = (id) => post(request(undefined, { "x-chat-session": id, "x-forwarded-for": "192.0.2.1" }));
+  for (let index = 0; index < 5; index++) assert.equal((await send(sessionA)).status, 200);
+  for (let index = 0; index < 6; index++) assert.equal((await send(sessionB)).status, 200);
+  for (let index = 0; index < 5; index++) assert.equal((await send(sessionA)).status, 200);
+  assert.equal((await send(sessionA)).status, 429);
+  for (let index = 0; index < 4; index++) assert.equal((await send(sessionB)).status, 200);
+  assert.equal((await send(sessionB)).status, 429);
+  assert.equal((await send(sessionC)).status, 200);
+});
+
+test("concurrent requests in one session do not block another session", () => {
+  let time = 0;
+  const acquire = createChatLimiter({ concurrent: 1, now: () => time });
+  const releaseA = acquire(sessionA);
+  const releaseB = acquire(sessionB);
+  assert.throws(() => acquire(sessionA), { status: 429 });
+  // Advancing the rate window must not remove an in-flight session.
+  time = 60000;
+  assert.throws(() => acquire(sessionA), { status: 429 });
+  releaseA();
+  releaseA();
+  const nextReleaseA = acquire(sessionA);
+  assert.throws(() => acquire(sessionA), { status: 429 });
+  nextReleaseA();
+  releaseB();
+});
+
+test("inactive sessions expire and storage capacity stays bounded", () => {
+  let time = 0;
+  const acquire = createChatLimiter({ maxSessions: 2, concurrent: 1, now: () => time });
+  const releaseA = acquire(sessionA);
+  acquire(sessionB)();
+  assert.throws(() => acquire(sessionC), { status: 503 });
+  time = 60000;
+  acquire(sessionC)();
+  assert.throws(() => acquire(sessionA), { status: 429 });
+  releaseA();
+  assert.throws(() => acquire(sessionB), { status: 503 });
+  time = 120000;
+  acquire(sessionB)();
+});
+
+test("missing or malformed session IDs are rejected before loading context", async () => {
+  const post = handler({ loadContext: () => assert.fail("must not load context") });
+  for (const id of ["", "not-a-uuid", "a".repeat(1000)]) {
+    assert.equal((await post(request(undefined, { "x-chat-session": id }))).status, 400);
+  }
+  const missing = request();
+  missing.headers.delete("x-chat-session");
+  assert.equal((await post(missing)).status, 400);
+});
+
+test("the tenth question preserves all nine completed turns accepted by the API", () => {
+  const history = Array.from({ length: 18 }, (_, index) => ({ role: index % 2 ? "assistant" : "user", content: "x".repeat(5000) }));
   const result = chatRequestMessages(history, " Pertanyaan baru ");
   assert.equal(result.length, 19);
   assert.equal(result[0].role, "user");
+  assert.equal(result[0].content.length, 4000);
   assert.equal(result.at(-1).content, "Pertanyaan baru");
   assert.deepEqual(parseMessages({ messages: result }), result);
+});
+
+test("all ten questions receive replies and the eleventh is blocked on client and server", async () => {
+  let calls = 0;
+  const post = handler({ fetchImpl: async () => {
+    calls++;
+    return Response.json({ choices: [{ message: { content: "Jawaban" } }] });
+  } });
+  let history = [];
+  for (let turn = 1; turn <= 10; turn++) {
+    assert.equal(hasReachedChatLimit(history), false);
+    const outgoing = chatRequestMessages(history, `Pertanyaan ${turn}`);
+    const response = await post(request({ messages: outgoing }));
+    assert.equal(response.status, 200, `question ${turn} must be answered`);
+    history = [...outgoing, { role: "assistant", content: (await response.json()).content }];
+  }
+  assert.equal(hasReachedChatLimit(history), true);
+  assert.throws(() => chatRequestMessages(history, "Pertanyaan 11"), { message: CHAT_LIMIT_MESSAGE });
+  const response = await post(request({ messages: [...history, { role: "user", content: "Pertanyaan 11" }] }));
+  assert.equal(response.status, 429);
+  assert.equal((await response.json()).error, CHAT_LIMIT_MESSAGE);
+  assert.equal(calls, 10);
+});
+
+test("only customer questions count toward the conversation limit", () => {
+  assert.equal(hasReachedChatLimit([{ role: "assistant", content: "Halo!" }]), false);
+  const history = Array.from({ length: 9 }, () => [
+    { role: "user", content: "Pertanyaan FAQ" },
+    { role: "assistant", content: "Jawaban FAQ" },
+  ]).flat();
+  assert.equal(hasReachedChatLimit(history), false);
+  assert.equal(hasReachedChatLimit([...history, { role: "user", content: "Pertanyaan terakhir" }, { role: "assistant", content: "Jawaban" }]), true);
 });
 
 test("FAQ fallback handles exact questions and nonempty keywords", () => {
