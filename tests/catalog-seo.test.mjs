@@ -67,6 +67,25 @@ test("SEO title and summary use product-specific editorial fields when available
   const custom = { ...product, seoTitle: "AutoCAD Teknik", seoDescription: "Deskripsi khusus untuk pencarian." };
   assert.equal(getProductMetaTitle(custom), "AutoCAD Teknik | Aplikasi.id");
   assert.equal(getProductMetaDescription(custom), "Deskripsi khusus untuk pencarian.");
+  assert.equal(getProductMetaDescription({ ...product, description: "Ringkasan pilihan editor.", seoDescription: "Ringkasan pilihan editor." }), "Ringkasan pilihan editor.");
+});
+
+test("generated summaries keep complete platform and version information instead of copied truncation", () => {
+  const spss = { title: "IBM SPSS Statistics untuk Windows", os: "Windows", category: "Office", versions: "21, 23, 25, 26, 27", description: "Software statistik untuk skripsi. ".repeat(12) };
+  const legacy = spss.description.trim().slice(0, 157).replace(/\s+\S*$/, "") + "…";
+  const summary = getProductMetaDescription({ ...spss, seoDescription: legacy });
+  assert.match(summary, /21, 23, 25, 26, 27/);
+  assert.match(summary, /harga, kompatibilitas, dan lisensi/);
+  assert.ok(summary.length <= 160);
+  assert.ok(summary.endsWith("."));
+  assert.equal((summary.match(/Windows/g) || []).length, 1);
+
+  const longVersions = { ...product, title: "AutoCAD", os: "Windows & macOS", versions: "2015 - 2016 - 2017 - 2018 - 2019 - 2020 - 2021 - 2022 - 2023 - 2024 - 2025 - 2026" };
+  const compact = getProductMetaDescription(longVersions);
+  assert.match(compact, /Windows & macOS/);
+  assert.match(compact, /pilihan versi, harga/);
+  assert.ok(compact.length <= 160 && compact.endsWith("."));
+  assert.equal(getProductMetaDescription({ ...spss, seoDescription: "Ringkasan khusus yang dipilih editor…" }), "Ringkasan khusus yang dipilih editor…");
 });
 
 test("product structured data matches visible price and avoids fabricated ratings", () => {

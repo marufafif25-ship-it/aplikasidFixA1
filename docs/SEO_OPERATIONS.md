@@ -1,5 +1,32 @@
 # Operasional SEO Aplikasi.id
 
+## Pemeriksaan dan perubahan 20 November 2026
+
+Status ini membedakan situs live, perubahan lokal, dan data Google yang belum dapat dibaca.
+
+- **Situs live:** beranda, produk SPSS Windows/macOS, kategori riset, blog, robots.txt, serta sitemap merespons HTTP 200. Halaman yang diperiksa memakai canonical `https://www.aplikasid.com` dan mengizinkan indeks. Domain apex serta URL produk pada domain lama mengarah ke domain kanonis. Sitemap live berisi 96 URL, termasuk 35 artikel. Ini pemeriksaan akses teknis, bukan bukti indeks Google terbaru.
+- **Search Console terbaru belum diperiksa:** akun Chrome awal tidak memiliki akses ke properti; setelah pengguna menyebut akun kampusapp, koneksi browser tidak dapat membaca jendela Chrome. Angka pada catatan Oktober di bawah tetap merupakan data historis. Jangan menggunakannya sebagai angka November atau menganggap hasil pencarian `site:` yang kosong sebagai bukti deindex.
+- **Ketentuan produk dari pemilik:** pada percakapan 20 November, pemilik mengonfirmasi semua produk memakai lisensi resmi, masa berlaku 5 tahun, dan 1 pembelian untuk 1 laptop/PC. Tidak ada data tambahan untuk menyimpulkan metode aktivasi atau cakupan garansi. Pembacaan katalog publik saat audit menunjukkan tiga field lisensi tersebut belum diisi pada produk; nilai umum diterapkan melalui helper presentasi, tanpa menulis ulang katalog Supabase.
+
+Perubahan lokal:
+
+1. `lib/product-purchase-info.mjs`: ketentuan umum tampil pada halaman produk serta FAQ untuk produk dengan field kosong. Nilai khusus yang diisi admin tetap diutamakan. Placeholder editor menjelaskan nilai umum tersebut. Chat menerima ketentuan yang sama melalui whitelist field publik.
+2. `lib/catalog-seo.mjs`: ringkasan yang sebelumnya berupa salinan deskripsi terpotong diganti kalimat lengkap tentang nama, platform, versi, harga, kompatibilitas, dan lisensi. Daftar versi panjang diarahkan ke halaman detail, bukan dipotong di tengah daftar. Teks SEO khusus tetap dipertahankan. Ringkasan tidak menjanjikan posisi atau tampilan snippet Google.
+3. `lib/product-buying-guides.mjs`: panduan pemilihan Premiere Pro dan tautan artikel yang relevan, melengkapi lima produk prioritas sebelumnya.
+4. `lib/blog-product-links.mjs`: lima artikel terbit tentang akses gratis/edukasi mendapat produk terkait yang sesuai. Penawaran toko dijelaskan terpisah dari akses gratis pengembang; artikel Mendeley/Zotero menautkan Office untuk penulisan, bukan mengarahkan pembaca ke Mendeley Desktop lama.
+5. `lib/blog-seo-additions.mjs`: satu artikel baru, **SPSS untuk Mac: Cek Versi macOS, Intel, dan Apple Silicon**, dengan checklist perangkat, pembaruan versi SPSS, sumber Apple/IBM, serta tautan produk dan panduan. Topik ini menjawab kebutuhan memilih perangkat; belum ada data kueri November untuk menyatakan volume pencariannya. Artikel masuk seed SQL, belum diterbitkan ke database.
+
+Penerapan yang masih diperlukan:
+
+1. Deploy perubahan kode melalui alur hosting proyek. Tidak ada deployment atau push Git pada pekerjaan ini.
+2. Impor **`supabase/blog-seo-refresh.sql`** setelah schema blog tersedia, atau masukkan artikel baru melalui admin. File ini hanya menambahkan artikel SPSS Mac tanpa memulihkan artikel lama yang pernah dihapus; slug yang sudah ada tidak ditimpa. `supabase/blog-seed.sql` tetap tersedia untuk instalasi awal. Artikel lokal tidak otomatis muncul di production. Setelah terbit, tautan dari produk SPSS Mac serta sitemap mengikuti data terbit secara otomatis.
+3. Buka Search Console dengan akun kampusapp. Ambil Performance untuk periode 3 bulan, pisahkan kueri merek dan nonmerek, lalu lihat pasangan Queries/Pages. Catat klik, tayangan, CTR, dan posisi bersama rentang tanggalnya. Untuk Page indexing, catat tanggal laporan, jumlah indexed/not indexed, alasan, dan contoh URL; periksa URL prioritas melalui URL Inspection sebelum memutuskan tindakan.
+4. Setelah deployment/publikasi, periksa metadata dan canonical produk prioritas, sitemap, artikel baru, serta ketentuan pembelian. Request indexing pada URL baru yang siap tanpa mengulang permintaan berkali-kali.
+
+Validasi lokal: `npm test` lulus **150 test**. Pemeriksaan HTTP pada build production lokal lulus untuk enam produk prioritas, lima artikel dengan produk terkait, robots, dan sitemap (13 endpoint). Artikel baru berhasil dirender dengan Markdown, tabel, tautan produk, serta sumber resmi. `npm run build` lulus pada percobaan ulang, tetapi Next.js 16.4.3 memunculkan peringatan kerentanan keamanan dependency; pemeriksaan pertama menghentikan build. Peningkatan keamanan dependency masih perlu dikerjakan terpisah dan belum diterapkan pada pekerjaan SEO ini.
+
+## Catatan historis Oktober 2026
+
 Pemeriksaan 27 Oktober 2026, Asia/Jakarta. Pisahkan hasil laporan Google, perubahan kode lokal, dan status deployment.
 
 ## Kondisi yang sudah diperiksa

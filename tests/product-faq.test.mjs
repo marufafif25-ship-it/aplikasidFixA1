@@ -37,18 +37,20 @@ test("explicit purchase terms supply license, delivery, and warranty answers wit
   assert.doesNotMatch(licensing, /lifetime|seumur hidup|perangkat tanpa batas/i);
 });
 
-test("missing license details and broad specs never invent activation, duration, or warranty coverage", () => {
+test("confirmed store terms supply license answers without inventing activation or warranty coverage", () => {
   const items = getProductFaq({ title: "Software", specs: ["Full Version", "Bergaransi"] });
-  assert.deepEqual(items.map(({ id }) => id), ["features"]);
+  assert.deepEqual(items.map(({ id }) => id), ["features", "license"]);
+  assert.match(items.find(({ id }) => id === "license").answer, /Lisensi resmi[\s\S]*5 tahun[\s\S]*1 pembelian untuk 1 laptop atau PC/);
+  assert.equal(items.some(({ id }) => id === "warranty"), false);
   const partial = getProductFaq({ title: "Office", licenseType: "Retail" });
   assert.match(partial[0].answer, /Jenis lisensi: Retail/);
   assert.match(partial[0].answer, /Konfirmasi ketentuan lisensi lain/);
-  assert.doesNotMatch(partial[0].answer, /1 perangkat|seumur hidup/i);
+  assert.doesNotMatch(partial[0].answer, /seumur hidup|aktivasi otomatis/i);
 });
 
 test("FAQ generation filters malformed fields, deduplicates specs, and excludes private data", () => {
   const items = getProductFaq({ title: "Premiere", os: 123, versions: null, specs: [null, false, 5, "  Panduan  ", "Panduan"], licenseKey: "PRIVATE_KEY", downloadUrl: "PRIVATE_URL", internalNotes: "PRIVATE_NOTES" });
-  assert.equal(items.length, 1);
+  assert.equal(items.length, 2);
   assert.equal(items[0].answer, "• Panduan");
   assert.doesNotMatch(JSON.stringify(items), /PRIVATE|123|false|null/);
   for (const product of [null, undefined, {}, { versions: 2026, compatibility: false, specs: {} }]) assert.deepEqual(getProductFaq(product), []);
@@ -65,10 +67,11 @@ test("updating catalog information immediately changes its derived FAQ", () => {
 test("FAQ renders native accessible accordions, escapes catalog text, and hides absent content", () => {
   const html = render({ title: "Office <uji>", compatibility: "<script>alert(1)</script> & catatan", versions: "2026" });
   assert.match(html, /<details open="">/);
-  assert.equal((html.match(/<summary>/g) || []).length, 2);
+  assert.equal((html.match(/<summary>/g) || []).length, 3);
   assert.match(html, /Office &lt;uji&gt;/);
   assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt; &amp; catatan/);
   assert.doesNotMatch(html, /<script>/);
   assert.match(html, /href="\/kontak"/);
-  assert.equal(render({ title: "Belum lengkap" }), "");
+  assert.match(render({ title: "Belum lengkap" }), /Lisensi resmi/);
+  assert.equal(render({}), "");
 });

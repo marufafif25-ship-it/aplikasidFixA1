@@ -6,6 +6,13 @@ import { chatRequestMessages, findChatFaq } from "../lib/chat-client.mjs";
 const messages = [{ role: "user", content: "Ada software desain untuk Windows?" }];
 const request = (body = { messages }, headers = {}) => new Request("https://example.com/api/chat", { method: "POST", headers, body: JSON.stringify(body) });
 const context = { store: { products: [{ title: "Desain", price: 50000 }], faq: [] }, guides: [] };
+
+test("chat receives the same confirmed purchase terms as product pages without private fields", () => {
+  const instruction = composeChatInstruction({ products: [{ title: "SPSS", licenseKey: "PRIVATE_KEY", downloadUrl: "PRIVATE_URL" }] });
+  const reference = JSON.parse(instruction.split("\n\n").at(-1));
+  assert.deepEqual(reference.products[0].purchaseTerms, { licenseType: "Lisensi resmi", licenseDuration: "5 tahun", deviceLimit: "1 pembelian untuk 1 laptop atau PC" });
+  assert.doesNotMatch(instruction, /PRIVATE_KEY|PRIVATE_URL/);
+});
 test("SumoPod configuration defaults to GPT-4o mini", () => {
   assert.deepEqual(chatConfig({ SUMOPOD_API_KEY: "test", SUMOPOD_BASE_URL: "https://ai.sumopod.com/v1" }), {
     apiKey: "test", model: "gpt-4o-mini", baseUrl: "https://ai.sumopod.com/v1",

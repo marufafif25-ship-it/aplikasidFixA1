@@ -23,9 +23,9 @@ const ProductDetailPage = loadJsx(new URL("../app/produk/[id]/page.js", import.m
   "../../../lib/storefront-server": { getStorefront: async () => ({ products: [product], footer: {} }) }
 }).default;
 
-test("five priority products have distinct selection advice and links to existing editorial content", () => {
+test("six priority products have distinct selection advice and links to existing editorial content", () => {
   const headings = new Set();
-  for (const id of ["app-1790154210043", "app-spssmac", "app-office", "app-autocad", "app-photoshop"]) {
+  for (const id of ["app-1790154210043", "app-spssmac", "app-office", "app-autocad", "app-photoshop", "app-premiere"]) {
     const guide = getProductBuyingGuide(id);
     assert.ok(guide.purpose);
     assert.ok(guide.checklist.length >= 3);
@@ -33,7 +33,7 @@ test("five priority products have distinct selection advice and links to existin
     headings.add(guide.heading);
     for (const slug of guide.articleSlugs) assert.ok(BLOG_SEED_POSTS.some((post) => post.slug === slug), slug);
   }
-  assert.equal(headings.size, 5);
+  assert.equal(headings.size, 6);
   for (const id of ["unknown", "constructor", "__proto__", undefined]) assert.equal(getProductBuyingGuide(id), null);
 });
 

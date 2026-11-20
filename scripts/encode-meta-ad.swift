@@ -4,12 +4,13 @@ import CoreVideo
 import Foundation
 import ImageIO
 
-let frameDir = URL(fileURLWithPath: "/tmp/aplikasid-meta-ad-frames")
-let outputURL = URL(fileURLWithPath: CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "output/aplikasid-meta-ad-15s.mp4")
+let args = CommandLine.arguments
+let outputURL = URL(fileURLWithPath: args.count > 1 ? args[1] : "output/aplikasid-meta-ad-15s.mp4")
+let frameDir = URL(fileURLWithPath: args.count > 2 ? args[2] : "/tmp/aplikasid-meta-ad-frames")
 let width = 1080
 let height = 1920
 let fps: Int32 = 30
-let frameCount = 450
+let frameCount = args.count > 3 ? Int(args[3])! : 450
 
 try? FileManager.default.removeItem(at: outputURL)
 try FileManager.default.createDirectory(at: outputURL.deletingLastPathComponent(), withIntermediateDirectories: true)

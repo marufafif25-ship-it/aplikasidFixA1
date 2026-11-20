@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mix a local Indonesian narration with a soft original music bed for the 15s ad."""
+"""Mix a local Indonesian narration with a soft original music bed (15s by default)."""
 import math
 import struct
 import sys
@@ -8,7 +8,7 @@ import wave
 VOICE_PATH = sys.argv[1] if len(sys.argv) > 1 else "/tmp/aplikasid-narration.wav"
 OUTPUT_PATH = sys.argv[2] if len(sys.argv) > 2 else "/tmp/aplikasid-meta-ad-mix.wav"
 RATE = 44_100
-DURATION = 15.0
+DURATION = float(sys.argv[3]) if len(sys.argv) > 3 else 15.0
 TOTAL = int(RATE * DURATION)
 TAU = math.tau
 
@@ -62,8 +62,8 @@ step = 0.3
 pcm = bytearray()
 for i in range(TOTAL):
     t = i / RATE
-    chord_index = min(3, int(t / 3.75))
-    chord_start = chord_index * 3.75
+    chord_index = int(t / 3.75) % len(chords)
+    chord_start = math.floor(t / 3.75) * 3.75
     chord_age = t - chord_start
     chord_fade_in = min(1.0, chord_age / 0.55)
     end_fade = min(1.0, (DURATION - t) / 1.1)
@@ -107,4 +107,4 @@ with wave.open(OUTPUT_PATH, "wb") as out:
     out.setsampwidth(2)
     out.setframerate(RATE)
     out.writeframes(pcm)
-print(f"Wrote 15-second stereo mix: {OUTPUT_PATH}")
+print(f"Wrote {DURATION:g}-second stereo mix: {OUTPUT_PATH}")

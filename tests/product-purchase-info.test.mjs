@@ -19,7 +19,7 @@ test("purchase details retain only explicit public product terms", () => {
   assert.doesNotMatch(JSON.stringify(details), /PRIVATE|licenseKey|downloadUrl/);
 });
 
-test("older products and malformed optional fields do not invent license terms", () => {
+test("missing product records and malformed optional fields do not invent terms", () => {
   assert.deepEqual(getProductPurchaseDetails(), []);
   assert.deepEqual(getProductPurchaseDetails({ specs: ["Full version", "Garansi 5 tahun"], licenseType: false, deviceLimit: 5, activationMethod: {} }), []);
   const fields = normalizeProductPurchaseFields({ licenseType: "  Langganan  ", licenseDuration: null });
@@ -30,13 +30,27 @@ test("older products and malformed optional fields do not invent license terms",
 
 test("products with missing terms offer a product-specific question and explain digital delivery", () => {
   const html = render({ title: "Premiere Pro" });
-  assert.match(html, /Konfirmasi jenis lisensi, masa berlaku, jumlah perangkat, metode aktivasi kepada CS/);
+  assert.match(html, /Lisensi resmi/);
+  assert.match(html, /5 tahun/);
+  assert.match(html, /1 pembelian untuk 1 laptop atau PC/);
+  assert.match(html, /Konfirmasi metode aktivasi kepada CS/);
   assert.match(html, /Pengiriman digital/);
   assert.match(html, /email pesanan dari Lynk/);
   assert.match(html, /wa.me\/6287775977413\?text=/);
   assert.match(html, /Premiere\+Pro/);
   assert.match(html, /href="\/garansi"/);
-  assert.doesNotMatch(html, /<dl|Retail|Lifetime|Seumur hidup/);
+  assert.doesNotMatch(html, /Retail|Lifetime|Seumur hidup|Bantuan instalasi 5 tahun/);
+});
+
+test("confirmed store defaults apply to old products while explicit product terms remain editable", () => {
+  const product = { id: "app-spssmac", title: "SPSS", licenseType: " ", licenseDuration: false, deviceLimit: null };
+  const original = structuredClone(product);
+  const terms = Object.fromEntries(getProductPurchaseDetails(product).map(({ key, value }) => [key, value]));
+  assert.deepEqual(terms, { licenseType: "Lisensi resmi", licenseDuration: "5 tahun", deviceLimit: "1 pembelian untuk 1 laptop atau PC" });
+  assert.deepEqual(product, original);
+  assert.equal(getProductPurchaseDetails({ ...product, licenseDuration: "12 bulan" }).find(({ key }) => key === "licenseDuration").value, "12 bulan");
+  assert.equal("activationMethod" in terms, false);
+  assert.equal("warrantyInfo" in terms, false);
 });
 
 test("complete product terms render as text, replace delivery fallback, and omit the missing-terms notice", () => {

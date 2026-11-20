@@ -38,8 +38,8 @@ const officeTutorialSlugs = [
   "cara-mengelola-versi-file-di-google-drive-untuk-tim"
 ];
 
-test("all thirty articles offer one to three distinct links to available products", () => {
-  assert.equal(BLOG_SEED_POSTS.length, 30);
+test("all seed articles offer one to three distinct links to available products", () => {
+  assert.equal(BLOG_SEED_POSTS.length, 31);
 
   for (const post of BLOG_SEED_POSTS) {
     const links = getBlogProductLinks(post.slug, catalog, BLOG_SEED_POSTS);
@@ -55,6 +55,22 @@ test("all thirty articles offer one to three distinct links to available product
       assert.equal(product.href, `/produk/${encodeURIComponent(available.id)}`);
     }
   }
+});
+
+test("education and free-software articles keep relevant paid offers separate from free access", () => {
+  const expected = [
+    ["cara-mendapatkan-microsoft-office-gratis-untuk-mahasiswa", ["app-office"]],
+    ["cara-mendapatkan-autocad-gratis-resmi-autodesk-education", ["app-autocad"]],
+    ["spss-untuk-skripsi-lisensi-resmi-dan-alternatif-gratis", ["app-1790154210043", "app-spssmac"]],
+    ["mendeley-dan-zotero-aplikasi-sitasi-skripsi-resmi-gratis", ["app-office"]],
+    ["davinci-resolve-gratis-resmi-cara-download-dan-beda-studio", ["app-davinci"]]
+  ];
+  for (const [slug, ids] of expected) {
+    const links = getBlogProductLinks(slug, catalog);
+    assert.deepEqual(links.products.map(({ id }) => id), ids);
+    assert.match(links.intro, /gratis|edukasi/);
+  }
+  assert.equal(getBlogProductLinks(expected[3][0], catalog.filter(({ id }) => id !== "app-office")), null);
 });
 
 test("Illustrator and After Effects tutorials recommend the software being taught", () => {
